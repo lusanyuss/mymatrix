@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel target="1.7">
+      <module name="sample-android.app" target="1.8" />
+      <module name="sample-android.matrix-android-commons" target="1.8" />
+      <module name="sample-android.matrix-android-lib" target="1.8" />
+      <module name="sample-android.matrix-apk-canary" target="1.8" />
+      <module name="sample-android.matrix-arscutil" target="1.8" />
+      <module name="sample-android.matrix-backtrace" target="1.8" />
+      <module name="sample-android.matrix-battery-canary" target="1.8" />
+      <module name="sample-android.matrix-commons" target="1.8" />
+      <module name="sample-android.matrix-fd" target="1.8" />
+      <module name="sample-android.matrix-gradle-plugin" target="11" />
+      <module name="sample-android.matrix-hooks" target="1.8" />
+      <module name="sample-android.matrix-io-canary" target="1.8" />
+      <module name="sample-android.matrix-jectl" target="1.8" />
+      <module name="sample-android.matrix-memory-dump" target="1.8" />
+      <module name="sample-android.matrix-opengl-leak" target="1.8" />
+      <module name="sample-android.matrix-resource-canary.matrix-resource-canary-android" target="1.8" />
+      <module name="sample-android.matrix-sqlite-lint.matrix-sqlite-lint-android-sdk" target="1.8" />
+      <module name="sample-android.matrix-trace-canary" target="1.8" />
+      <module name="sample-android.matrix-traffic" target="1.8" />
+      <module name="sample-android.test.matrix-backtrace-benchmark" target="11" />
+      <module name="sample-android.test.test-backtrace" target="11" />
+      <module name="sample-android.test.test-memoryhook" target="11" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
