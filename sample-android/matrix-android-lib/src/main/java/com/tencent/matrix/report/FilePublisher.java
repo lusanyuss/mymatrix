@@ -11,16 +11,13 @@ import com.tencent.matrix.util.MatrixUtil;
 import java.util.HashMap;
 import java.util.HashSet;
 
-/**
-
- */
 
 public class FilePublisher extends IssuePublisher {
     private static final String TAG = "Matrix.FilePublisher";
 
-    private final long                     mExpiredTime;
+    private final long mExpiredTime;
     private final SharedPreferences.Editor mEditor;
-    private final HashMap<String, Long>    mPublishedMap;
+    private final HashMap<String, Long> mPublishedMap;
 
     private final Context mContext;
 

@@ -85,7 +85,6 @@ public class TestTraceMainActivity extends Activity implements IAppForeground {
     }
 
     private boolean canDrawOverlays() {
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return Settings.canDrawOverlays(this);
         } else {
