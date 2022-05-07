@@ -1,8 +1,7 @@
 apply from: "$rootDir/gradle/Arguments.gradle"
-include ':app'
-include ':app_trace_demo'
+
 // Gradle plugin
-//include ':matrix-gradle-plugin'
+include ':matrix-gradle-plugin'
 
 // Components
 include ':matrix-android-commons'
@@ -13,7 +12,7 @@ include ':matrix-resource-canary:matrix-resource-canary-analyzer'
 include ':matrix-resource-canary:matrix-resource-canary-analyzer-cli'
 include ':matrix-resource-canary:matrix-resource-canary-android'
 include ':matrix-trace-canary'
-//include ':matrix-apk-canary'
+include ':matrix-apk-canary'
 include ':matrix-io-canary'
 include ':matrix-sqlite-lint:matrix-sqlite-lint-android-sdk'
 include ':matrix-battery-canary'
@@ -29,15 +28,14 @@ include ':matrix-jectl'
 include ':matrix-fd'
 
 // Benchmark
-//include ':test:matrix-backtrace-benchmark'
+include ':test:matrix-backtrace-benchmark'
 
 // TEST
-//include ':test:test-backtrace'
-//include ':test:test-memoryhook'
+include ':test:test-backtrace'
+include ':test:test-memoryhook'
 
 if (gradle.staticLinkCXX()) {
     include ':matrix-hooks:cxx-static'
     include ':matrix-opengl-leak:cxx-static'
     include ':matrix-backtrace:cxx-static'
 }
-

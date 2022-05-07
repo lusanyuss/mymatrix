@@ -3,6 +3,7 @@
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="1.7">
       <module name="sample-android.app" target="1.8" />
+      <module name="sample-android.app_trace_demo" target="1.8" />
       <module name="sample-android.matrix-android-commons" target="1.8" />
       <module name="sample-android.matrix-android-lib" target="1.8" />
       <module name="sample-android.matrix-apk-canary" target="1.8" />
