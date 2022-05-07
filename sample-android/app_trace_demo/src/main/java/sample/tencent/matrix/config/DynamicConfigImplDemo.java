@@ -1,7 +1,3 @@
-
-
-
-
 package sample.tencent.matrix.config;
 
 import android.util.Log;

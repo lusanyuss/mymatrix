@@ -1,5 +1,3 @@
-
-
 package sample.tencent.matrix.issue;
 
 import com.tencent.matrix.report.Issue;

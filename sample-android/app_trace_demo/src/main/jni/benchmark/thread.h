@@ -1,4 +1,3 @@
-// ported from https://github.com/mjansson/rpmalloc-benchmark
 #ifndef LIBWXPERF_JNI_THREAD_H
 #define LIBWXPERF_JNI_THREAD_H
 

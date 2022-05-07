@@ -1,5 +1,3 @@
-
-
 package sample.tencent.matrix.listener;
 
 import android.app.Application;

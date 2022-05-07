@@ -1,6 +1,3 @@
-//
-//
-
 #ifndef LIBWXPERF_JNI_MALLOCTEST_H
 #define LIBWXPERF_JNI_MALLOCTEST_H
 

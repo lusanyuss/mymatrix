@@ -1,7 +1,3 @@
-//
-
-//
-
 #include <malloc.h>
 #include <pthread.h>
 #include <unistd.h>

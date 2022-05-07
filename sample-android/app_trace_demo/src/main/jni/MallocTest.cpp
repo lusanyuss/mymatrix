@@ -1,6 +1,3 @@
-//
-//
-
 #include <pthread.h>
 #include <cstdlib>
 #include <cstring>

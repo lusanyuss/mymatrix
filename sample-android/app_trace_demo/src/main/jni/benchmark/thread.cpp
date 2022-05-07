@@ -1,4 +1,3 @@
-// ported from https://github.com/mjansson/rpmalloc-benchmark
 #include "thread.h"
 
 #ifdef _MSC_VER

@@ -1,7 +1,3 @@
-//
-
-//
-
 #include <malloc.h>
 #include "MemoryBenchmarkTest.h"
 #include "BenchMarkCommon.h"
