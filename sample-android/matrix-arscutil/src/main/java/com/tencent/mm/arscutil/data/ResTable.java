@@ -6,14 +6,15 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
-
+ * 1.整个arsc文件是一个 RES_TABLE_TYPE 类型的chunk；
+ * 2.RES_TABLE_TYPE 可分为三个部分：文件头部和两个子chunk
+ * ( RES_STRING_POOL_TYPE 、 RES_TABLE_PACKAGE_TYPE )；
  */
-
 public class ResTable extends ResChunk {
 
-    private int packageCount; // 资源package数目, 4 bytes
-    private ResStringBlock globalStringPool; // 全局资源池
-    private ResPackage[] packages; // 资源package数组
+    private int packageCount; // 文件头部,资源package数目, 4 bytes
+    private ResStringBlock globalStringPool; // 全局资源池 chunk
+    private ResPackage[] packages; // 资源package数组 chunk
 
     public int getPackageCount() {
         return packageCount;

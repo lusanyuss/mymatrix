@@ -5,9 +5,6 @@ package com.tencent.mm.arscutil.data;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-/**
-
- */
 
 public class ResValue {
 

@@ -5,10 +5,9 @@ package com.tencent.mm.arscutil.data;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-/**
 
- */
-
+//drawable资源类型chunk
+//attr资源类型chunk
 public class ResTypeSpec extends ResChunk {
 
     private byte id; // id， 1 byte

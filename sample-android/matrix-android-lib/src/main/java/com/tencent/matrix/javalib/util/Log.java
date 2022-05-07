@@ -1,7 +1,4 @@
-
-
 package com.tencent.matrix.javalib.util;
-
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -93,11 +90,11 @@ public class Log {
     }
 
     private final static String[][] LOG_LEVELS = {
-            {"V",   "VERBOSE",  "0"},
-            {"D",   "DEBUG",    "1"},
-            {"I",   "INFO",     "2"},
-            {"W",   "WARN",     "3"},
-            {"E",   "ERROR",    "4"},
+            {"V", "VERBOSE", "0"},
+            {"D", "DEBUG", "1"},
+            {"I", "INFO", "2"},
+            {"W", "WARN", "3"},
+            {"E", "ERROR", "4"},
     };
 
     public static void setLogLevel(String logLevel) {

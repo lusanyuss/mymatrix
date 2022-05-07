@@ -2,8 +2,12 @@
 
 package com.tencent.mm.arscutil.data;
 
-/**
 
+/**
+ * chunk翻译为中文就是“块、部分(尤指大部分，一大块)”的意思，
+ * 例如：一棵树，
+ * 可以分为三个chunk(部分)：树冠、树茎、树根。
+ * 也可以将一棵树视为一个chunk，这个chunk就是这棵树。
  */
 
 public abstract class ResChunk {
