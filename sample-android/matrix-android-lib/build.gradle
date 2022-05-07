@@ -25,6 +25,7 @@ dependencies {
 //    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
 //    androidTestImplementation 'androidx.annotation:annotation:1.0.0'
     api 'androidx.annotation:annotation:1.0.0'
+    implementation 'commons-io:commons-io:2.6'
 }
 
 //version = rootProject.ext.VERSION_NAME

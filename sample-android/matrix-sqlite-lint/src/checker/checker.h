@@ -1,9 +1,3 @@
-
-
-//
- on 2017/6/22
-//
-
 #ifndef SQLITE_LINT_CHECKER_CHECKER_H
 #define SQLITE_LINT_CHECKER_CHECKER_H
 

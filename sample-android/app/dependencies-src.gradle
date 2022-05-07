@@ -4,7 +4,7 @@ dependencies {
     implementation "androidx.appcompat:appcompat:1.1.0"
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
 
-    implementation project(":matrix-commons")
+//    implementation project(":matrix-commons")
     implementation project(":matrix-battery-canary")
     implementation project(":matrix-android-lib")
     implementation project(":matrix-android-commons")

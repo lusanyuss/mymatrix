@@ -1,10 +1,3 @@
-
-
-//
-// Some logic functions
- on 2017/6/21
-//
-
 #ifndef SQLITE_LINT_LINT_LOGIC_H
 #define SQLITE_LINT_LINT_LOGIC_H
 

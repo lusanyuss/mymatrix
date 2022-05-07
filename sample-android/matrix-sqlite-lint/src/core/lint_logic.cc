@@ -1,9 +1,3 @@
-
-
-//
- on 2017/6/21
-//
-
 #include <comm/log/logger.h>
 #include "comm/lint_util.h"
 #include "lint_logic.h"

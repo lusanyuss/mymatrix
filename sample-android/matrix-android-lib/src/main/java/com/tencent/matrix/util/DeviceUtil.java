@@ -142,12 +142,12 @@ public class DeviceUtil {
             } else {
                 sMemoryClass = (int) (memClass / MB);
             }
-//            int isLargeHeap = (context.getApplicationInfo().flags | ApplicationInfo.FLAG_LARGE_HEAP);
-//            if (isLargeHeap > 0) {
-//                sMemoryClass = am.getLargeMemoryClass();
-//            } else {
-//                sMemoryClass = am.getMemoryClass();
-//            }
+            //            int isLargeHeap = (context.getApplicationInfo().flags | ApplicationInfo.FLAG_LARGE_HEAP);
+            //            if (isLargeHeap > 0) {
+            //                sMemoryClass = am.getLargeMemoryClass();
+            //            } else {
+            //                sMemoryClass = am.getMemoryClass();
+            //            }
 
             MatrixLog.i(TAG, "getTotalMemory cost:" + (System.currentTimeMillis() - start) + ", total_mem:" + sTotalMemory
                     + ", LowMemoryThresold:" + sLowMemoryThresold + ", Memory Class:" + sMemoryClass);
@@ -206,6 +206,10 @@ public class DeviceUtil {
         }
     }
 
+    /**
+     * 获取app的cpu速度
+     * @return
+     */
     public static double getAppCpuRate() {
         long start = System.currentTimeMillis();
         long cpuTime = 0L;
@@ -371,6 +375,14 @@ public class DeviceUtil {
         return -1;
     }
 
+
+    /**
+     * 输入流转字符串
+     *
+     * @param is
+     * @return
+     * @throws Exception
+     */
     public static String convertStreamToString(InputStream is) throws Exception {
         BufferedReader reader = null;
         StringBuilder sb = new StringBuilder();
@@ -389,6 +401,13 @@ public class DeviceUtil {
         return sb.toString();
     }
 
+    /**
+     * 获取文件字符串内容
+     *
+     * @param filePath
+     * @return
+     * @throws Exception
+     */
     public static String getStringFromFile(String filePath) throws Exception {
         File fl = new File(filePath);
         FileInputStream fin = null;
@@ -405,10 +424,9 @@ public class DeviceUtil {
     }
 
     /**
-     * Check if current runtime is 64bit.
+     * 检查是否64位机器
      *
-     * @return
-     *   True if current runtime is 64bit abi. Otherwise return false instead.
+     * @return True if current runtime is 64bit abi. Otherwise return false instead.
      */
     public static boolean is64BitRuntime() {
         final String currRuntimeABI = Build.CPU_ABI;

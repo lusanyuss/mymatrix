@@ -61,10 +61,8 @@ android {
 
     // Encapsulates your external native build configurations.
     externalNativeBuild {
-
         // Encapsulates your CMake build configurations.
         cmake {
-
             // Provides a relative path to your CMake build script.
             path "CMakeLists.txt"
         }
@@ -76,7 +74,6 @@ android {
                 setSrcDirs (['./libs'] as Set)
             }
         }
-
     }
 
     if (!removeUnusedResourcesV2Enable) {
