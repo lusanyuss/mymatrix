@@ -18,10 +18,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Kaede
- * @since 2020/12/8
- */
 public final class AppStatMonitorFeature extends AbsMonitorFeature {
     private static final String TAG = "Matrix.battery.AppStatMonitorFeature";
 

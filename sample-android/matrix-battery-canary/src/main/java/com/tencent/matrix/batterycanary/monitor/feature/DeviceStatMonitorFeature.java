@@ -25,9 +25,6 @@ import androidx.annotation.Nullable;
  * - CpuFreq
  * - Battery Status
  * - Temperatures
- *
- * @author Kaede
- * @since 2020/11/1
  */
 @SuppressWarnings("NotNullFieldNotInitialized")
 public final class DeviceStatMonitorFeature extends AbsMonitorFeature {

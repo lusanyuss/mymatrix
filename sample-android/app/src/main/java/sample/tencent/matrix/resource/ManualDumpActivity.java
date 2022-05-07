@@ -12,9 +12,7 @@ import com.tencent.matrix.resource.processor.ManualDumpProcessor;
 
 import sample.tencent.matrix.R;
 
-/**
- * Created by Yves on 2021/3/24
- */
+
 public class ManualDumpActivity extends Activity {
     private static final String TAG = "ManualDumpActivity";
 

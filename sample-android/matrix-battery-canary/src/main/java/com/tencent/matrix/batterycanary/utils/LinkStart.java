@@ -10,12 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 林库死大多
- *
- * @author Kaede
- * @since date 2016/10/31
- */
 @SuppressWarnings("unused")
 final public class LinkStart {
 

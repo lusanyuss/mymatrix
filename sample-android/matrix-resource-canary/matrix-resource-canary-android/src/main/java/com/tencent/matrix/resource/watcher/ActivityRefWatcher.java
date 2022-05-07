@@ -44,7 +44,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by tangyinsheng on 2017/6/2.
  * <p>
  * This class is ported from LeakCanary.
  */

@@ -1,5 +1,4 @@
 //
-// Created by 邓沛堆 on 2020-04-27.
 //
 
 #ifndef OPENGL_API_HOOK_GET_TLS_H

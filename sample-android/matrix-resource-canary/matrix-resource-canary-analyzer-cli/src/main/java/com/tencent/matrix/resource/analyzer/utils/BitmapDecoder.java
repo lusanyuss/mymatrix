@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by tangyinsheng on 2017/7/6.
  * <p>
  * This class is ported from Android Studio tools.
  */

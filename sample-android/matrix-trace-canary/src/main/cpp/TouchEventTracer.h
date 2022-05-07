@@ -1,5 +1,4 @@
 //
-// Created by 贾建业 on 2021/11/16.
 //
 
 #ifndef MATRIX_ANDROID_TOUCHEVENTTRACER_H

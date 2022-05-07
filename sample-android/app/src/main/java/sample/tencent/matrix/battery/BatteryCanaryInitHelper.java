@@ -33,10 +33,6 @@ import java.util.concurrent.Callable;
 
 import androidx.annotation.NonNull;
 
-/**
- * @author Kaede
- * @since 2021/4/23
- */
 @SuppressLint("LongLogTag")
 public final class BatteryCanaryInitHelper {
     private static final String TAG = "Matrix.BatteryCanaryDemo";

@@ -22,10 +22,6 @@ import java.util.concurrent.Callable;
 import androidx.annotation.CallSuper;
 import androidx.annotation.Nullable;
 
-/**
- * @author Kaede
- * @since 2021/9/18
- */
 public class CompositeMonitors {
     private static final String TAG = "Matrix.battery.CompositeMonitors";
 

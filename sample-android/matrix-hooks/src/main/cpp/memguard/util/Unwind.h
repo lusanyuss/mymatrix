@@ -1,5 +1,4 @@
 //
-// Created by tomystang on 2020/10/15.
 //
 
 #ifndef __MEMGUARD_UNWIND_H__

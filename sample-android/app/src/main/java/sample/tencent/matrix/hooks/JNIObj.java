@@ -1,8 +1,6 @@
 package sample.tencent.matrix.hooks;
 
-/**
- * Created by Yves on 2019-08-08
- */
+
 public class JNIObj {
 
     private static final String TAG = "Matrix.JNIObj";

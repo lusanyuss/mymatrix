@@ -29,7 +29,6 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Created by tangyinsheng on 2017/6/2.
  * <p>
  * This class is ported from LeakCanary.
  */

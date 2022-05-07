@@ -1,5 +1,4 @@
 //
-// Created by tomystang on 2020/11/18.
 //
 
 #ifndef __MEMGUARD_JNIAUX_H__

@@ -15,10 +15,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 
-/**
- * @author Kaede
- * @since 2021/1/27
- */
 public class AppStats {
 
     @IntDef(value = {

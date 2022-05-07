@@ -1,5 +1,4 @@
 //
-// Created by 贾建业 on 2021/11/16.
 //
 
 #include "TouchEventTracer.h"

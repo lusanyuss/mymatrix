@@ -23,7 +23,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Difference between this process and {@link ForkAnalyseProcessor} is analyzing HPROF until the
  * screen is off.
  *
- * @author aurorani
+ * 
  * @since 2021/10/25
  */
 public class LazyForkAnalyzeProcessor extends BaseLeakProcessor {

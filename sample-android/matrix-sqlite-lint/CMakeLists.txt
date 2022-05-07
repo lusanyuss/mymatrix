@@ -3,7 +3,6 @@
 # Include a certain platform's file: **.cmake
 # eg. see AndroidBuildSQLiteLint.cmake
 #
-# Created by liyongjie on 2017/6/21
 #
 
 cmake_minimum_required(VERSION 3.4.1)

@@ -1,5 +1,4 @@
 //
-// Created by YinSheng Tang on 2021/9/22.
 //
 
 #include "util/FdSanWrapper.h"

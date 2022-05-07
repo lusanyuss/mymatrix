@@ -13,9 +13,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
 
-/**
- * Created by habbyge on 2019/4/24.
- */
+
 public class TraceClassLoader {
 
     public static URLClassLoader getClassLoader(Project project, Collection<File> inputFiles)

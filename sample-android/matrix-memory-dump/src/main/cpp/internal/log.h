@@ -1,5 +1,4 @@
 //
-// Created by M.D. on 2021/10/26.
 //
 
 #ifndef MATRIX_ANDROID_LOG_H

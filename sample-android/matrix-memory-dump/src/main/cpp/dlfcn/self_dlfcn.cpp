@@ -1,5 +1,4 @@
 //
-// Created by M.D. on 2021/10/29.
 //
 
 #include "self_dlfcn.h"

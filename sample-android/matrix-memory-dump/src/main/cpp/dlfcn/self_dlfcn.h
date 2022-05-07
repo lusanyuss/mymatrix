@@ -1,5 +1,4 @@
 //
-// Created by M.D. on 2021/10/29.
 //
 
 #ifndef MATRIX_ANDROID_SELF_DLFCN_H

@@ -21,7 +21,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Created by tangyinsheng on 2017/6/2.
  *
  * This class is ported from LeakCanary.
  */

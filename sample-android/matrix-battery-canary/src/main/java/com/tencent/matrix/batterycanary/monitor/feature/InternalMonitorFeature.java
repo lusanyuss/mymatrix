@@ -17,9 +17,6 @@ import androidx.annotation.WorkerThread;
 
 /**
  * Matrix Internal Thread Status Monitoring.
- *
- * @author Kaede
- * @since 2020/11/1
  */
 @SuppressWarnings("NotNullFieldNotInitialized")
 public final class InternalMonitorFeature extends AbsMonitorFeature {

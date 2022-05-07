@@ -1,5 +1,4 @@
 //
-// Created by Yves on 2019-07-22.
 //
 
 #include <jni.h>

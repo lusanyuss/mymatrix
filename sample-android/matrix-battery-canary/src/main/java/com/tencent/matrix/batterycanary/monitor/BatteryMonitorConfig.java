@@ -13,10 +13,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-/**
- * @author Kaede
- * @since 2020/10/27
- */
 @SuppressWarnings({"SpellCheckingInspection"})
 public class BatteryMonitorConfig {
     public static final int DEF_STAMP_OVERHEAT = 200;

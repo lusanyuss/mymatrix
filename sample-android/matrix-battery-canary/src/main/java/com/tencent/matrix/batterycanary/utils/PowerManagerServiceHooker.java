@@ -1,18 +1,4 @@
-/*
- * Tencent is pleased to support the open source community by making wechat-matrix available.
- * Copyright (C) 2018 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the BSD 3-Clause License (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://opensource.org/licenses/BSD-3-Clause
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
 
 package com.tencent.matrix.batterycanary.utils;
 
@@ -20,6 +6,7 @@ import android.content.Context;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.WorkSource;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
@@ -32,8 +19,6 @@ import java.util.List;
 /**
  * This hook is to collect infos about how wake lock is used by the developers.
  *
- * @author liyongjie
- *         Created by liyongjie on 2017/7/24.
  * @Override public void onAcquireWakeLock(IBinder token, int flags, String tag, String packageName, WorkSource workSource, String historyTag) {
  * Log.i(TAG, "onAcquireWakeLock token:" + token.toString() + ", tag:" + tag);
  * }
@@ -53,6 +38,7 @@ public final class PowerManagerServiceHooker {
 
     public interface IListener {
         void onAcquireWakeLock(IBinder token, int flags, String tag, String packageName, @Nullable WorkSource workSource, @Nullable String historyTag);
+
         void onReleaseWakeLock(IBinder token, int flags);
     }
 
@@ -150,8 +136,8 @@ public final class PowerManagerServiceHooker {
     }
 
     /**
-     * @see #checkAcquireWakeLockArgs(Object[])
      * @param args
+     * @see #checkAcquireWakeLockArgs(Object[])
      */
     private static void dispatchAcquireWakeLock(Object[] argsArr) {
         AcquireWakeLockArgs args = AcquireWakeLockArgsCompatible.createAcquireWakeLockArgs(argsArr);

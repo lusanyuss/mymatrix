@@ -6,9 +6,7 @@ import com.tencent.matrix.resource.config.SharePluginInfo;
 import com.tencent.matrix.resource.watcher.ActivityRefWatcher;
 import com.tencent.matrix.util.MatrixLog;
 
-/**
- * Created by Yves on 2021/3/4
- */
+
 public class NoDumpProcessor extends BaseLeakProcessor {
 
     private static final String TAG = "Matrix.LeakProcessor.NoDump";

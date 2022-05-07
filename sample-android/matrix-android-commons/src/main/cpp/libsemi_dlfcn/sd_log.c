@@ -1,5 +1,5 @@
 //
-// Created by YinSheng Tang on 2021/7/21.
+
 //
 
 #include "sd_log.h"

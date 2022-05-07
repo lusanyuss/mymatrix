@@ -1,5 +1,4 @@
 //
-// Created by tomystang on 2020/10/16.
 //
 
 #ifndef __MEMGUARD_MEMALLOCATION_H__

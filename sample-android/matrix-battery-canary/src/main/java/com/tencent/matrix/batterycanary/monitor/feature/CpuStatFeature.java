@@ -19,10 +19,6 @@ import androidx.annotation.WorkerThread;
 import static com.tencent.matrix.batterycanary.utils.BatteryCanaryUtil.JIFFY_MILLIS;
 import static com.tencent.matrix.batterycanary.utils.BatteryCanaryUtil.ONE_HOR;
 
-/**
- * @author Kaede
- * @since 2021/9/10
- */
 @SuppressWarnings("SpellCheckingInspection")
 public class CpuStatFeature extends  AbsTaskMonitorFeature {
     private static final String TAG = "Matrix.battery.CpuStatFeature";

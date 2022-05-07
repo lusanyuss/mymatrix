@@ -1,5 +1,5 @@
 //
-// Created by tomystang on 2019/6/20.
+//
 //
 
 #if __ANDROID_API__ < 23

@@ -19,8 +19,6 @@ import java.util.*
 /**
  * Snippet for ASM configs
  *
- * @author Kaede
- * @since  2021/2/7
  */
 
 class KotlinTesting {

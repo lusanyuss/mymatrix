@@ -54,10 +54,6 @@ import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
-/**
- * @author Kaede
- * @since 2020/10/27
- */
 public interface BatteryMonitorCallback extends
         BatteryMonitorCore.JiffiesListener,
         InternalMonitorFeature.InternalListener,

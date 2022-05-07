@@ -1,7 +1,6 @@
 #
 # This will be included when you pass a argument platform=android to CMake
 # See AndroidSdk/build.gradle externalNativeBuild#cmake
-# Created by liyongjie on 2017/6/22
 #
 
 #add_subdirectory(../matrix-android-commons/src/main/cpp/libxhook-deprecated ${CMAKE_CURRENT_BINARY_DIR}/libxhook)

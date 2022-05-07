@@ -26,10 +26,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * @author Kaede
- * @since 2021/1/11
- */
 public final class BatteryEventDelegate {
     public static final String TAG = "Matrix.battery.LifeCycle";
 

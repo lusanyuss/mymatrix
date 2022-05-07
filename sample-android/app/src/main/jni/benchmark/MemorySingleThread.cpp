@@ -1,5 +1,4 @@
 //
-// Created by Yves on 2020-05-12.
 //
 
 #include <malloc.h>

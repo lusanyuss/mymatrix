@@ -1,5 +1,5 @@
 //
-// Created by YinSheng Tang on 2021/7/30.
+
 //
 
 #ifndef MATRIX_ANDROID_XH_MAPS_H

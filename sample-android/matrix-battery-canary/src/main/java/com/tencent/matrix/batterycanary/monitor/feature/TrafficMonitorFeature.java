@@ -11,9 +11,6 @@ import com.tencent.matrix.batterycanary.utils.RadioStatUtil;
  * - CpuFreq
  * - Battery Status
  * - Temperatures
- *
- * @author Kaede
- * @since 2020/11/1
  */
 @SuppressWarnings("NotNullFieldNotInitialized")
 public final class TrafficMonitorFeature extends AbsMonitorFeature {

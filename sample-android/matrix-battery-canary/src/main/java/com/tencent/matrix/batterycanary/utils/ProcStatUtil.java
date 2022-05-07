@@ -18,8 +18,6 @@ import androidx.annotation.VisibleForTesting;
 
 /**
  * see {@linkplain com.android.internal.os.ProcessCpuTracker}
- *
- * @author Kaede
  * @since 2020/11/6
  */
 @SuppressWarnings({"JavadocReference", "SpellCheckingInspection"})

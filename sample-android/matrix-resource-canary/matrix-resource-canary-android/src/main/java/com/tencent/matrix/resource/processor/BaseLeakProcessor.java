@@ -26,9 +26,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * Created by Yves on 2021/2/25
- */
+
 public abstract class BaseLeakProcessor {
     private static final String TAG = "Matrix.LeakProcessor.Base";
 

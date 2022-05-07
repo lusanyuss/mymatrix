@@ -7,9 +7,7 @@ import com.tencent.matrix.util.MatrixLog;
 
 import java.io.File;
 
-/**
- * Created by Yves on 2021/3/4
- */
+
 public class AutoDumpProcessor extends BaseLeakProcessor {
 
     private static final String TAG = "Matrix.LeakProcessor.AutoDump";

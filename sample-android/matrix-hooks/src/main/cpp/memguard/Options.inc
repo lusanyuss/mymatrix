@@ -1,5 +1,4 @@
 //
-// Created by tomystang on 2020/10/18.
 //
 
 OPTION_ITEM(size_t, maxAllocationSize, 64 * 1024,

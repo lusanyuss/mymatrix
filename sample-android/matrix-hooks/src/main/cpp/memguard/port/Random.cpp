@@ -1,5 +1,4 @@
 //
-// Created by tomystang on 2020/11/26.
 //
 
 #include <util/Auxiliary.h>

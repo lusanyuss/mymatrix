@@ -20,7 +20,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 
 /**
- * Created by tangyinsheng on 2017/6/2.
  *
  * This class is ported from LeakCanary.
  *

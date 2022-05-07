@@ -16,7 +16,6 @@
 package com.tencent.matrix.resource.common.utils;
 
 /**
- * Created by tangyinsheng on 2017/6/2.
  *
  * This class is ported from LeakCanary.
  */

@@ -1,5 +1,4 @@
 //
-// Created by tomystang on 2019-08-06.
 //
 
 #include <cstddef>

@@ -1,5 +1,4 @@
 //
-// Created by 邓沛堆 on 2020-05-28.
 //
 
 #include "type.h"

@@ -1,5 +1,4 @@
 //
-// Created by 邓沛堆 on 2020-05-26.
 //
 
 #include <GLES/gl.h>

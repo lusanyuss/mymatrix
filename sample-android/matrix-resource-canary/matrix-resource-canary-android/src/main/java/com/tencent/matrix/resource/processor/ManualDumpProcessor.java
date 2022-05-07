@@ -33,7 +33,6 @@ import androidx.annotation.Nullable;
 
 /**
  * X process leaked -> send notification -> main process activity -> dump and analyse in X process -> show result in main process activity
- * Created by Yves on 2021/3/4
  */
 public class ManualDumpProcessor extends BaseLeakProcessor {
 

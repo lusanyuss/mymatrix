@@ -8,10 +8,6 @@ import androidx.annotation.WorkerThread;
 import com.tencent.matrix.batterycanary.monitor.BatteryMonitorCore;
 import com.tencent.matrix.util.MatrixLog;
 
-/**
- * @author Kaede
- * @since 2020/12/24
- */
 public abstract class AbsMonitorFeature implements MonitorFeature {
     private static final String TAG = "Matrix.battery.MonitorFeature";
 

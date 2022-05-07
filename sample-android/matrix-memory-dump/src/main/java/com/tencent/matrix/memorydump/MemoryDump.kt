@@ -23,7 +23,7 @@ private const val TAG = "Matrix.MemoryDump"
  *
  * The idea is from [KOOM](https://github.com/KwaiAppTeam/KOOM).
  *
- * @author aurorani
+ * 
  * @since 2021/10/20
  */
 object MemoryDumpManager {
@@ -41,7 +41,7 @@ object MemoryDumpManager {
      *
      * TODO: Convert to SAM interface after upgrading Kotlin version to 1.4.
      *
-     * @author aurorani
+     * 
      * @since 2021/10/25
      */
     interface DumpCallback {

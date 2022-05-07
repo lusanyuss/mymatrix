@@ -15,7 +15,7 @@ import androidx.annotation.RestrictTo;
 /**
  * Configure timeline portions & ratio for the given stamps and return split-portions with each weight.
  *
- * @author Kaede
+ * 
  * @since 2020/12/22
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY)

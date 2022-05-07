@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.Serializable;
 
 /**
- * Created by tangyinsheng on 2017/6/4.
  *
  * This class is ported from LeakCanary.
  *

@@ -27,9 +27,7 @@ import java.io.IOException;
 import static com.tencent.matrix.resource.common.utils.Preconditions.checkNotNull;
 
 
-/**
- * Created by tangyinsheng on 2017/7/4.
- */
+
 
 public class HeapSnapshot {
 

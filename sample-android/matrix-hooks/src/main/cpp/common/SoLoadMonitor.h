@@ -1,5 +1,4 @@
 //
-// Created by YinSheng Tang on 2021/7/8.
 //
 
 #ifndef MATRIX_ANDROID_SOLOADMONITOR_H

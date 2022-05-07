@@ -5,9 +5,7 @@ import androidx.annotation.Keep;
 
 import com.tencent.matrix.util.MatrixLog;
 
-/**
- * Created by Yves on 2019-07-22
- */
+
 public class FDDumpBridge {
 
     private static final String TAG = "FDDumpBridge";

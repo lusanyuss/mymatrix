@@ -10,12 +10,7 @@ import com.tencent.matrix.batterycanary.utils.Consumer;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-/**
- * Matrix Battery Canary Plugin Facades.
- *
- * @author Kaede
- * @since 2021/1/27
- */
+
 final public class BatteryCanary {
 
     @Nullable

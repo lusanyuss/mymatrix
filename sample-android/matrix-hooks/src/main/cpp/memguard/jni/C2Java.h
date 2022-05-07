@@ -1,5 +1,4 @@
 //
-// Created by tomystang on 2021/2/1.
 //
 
 #ifndef __MEMGUARD_C2JAVA_H__

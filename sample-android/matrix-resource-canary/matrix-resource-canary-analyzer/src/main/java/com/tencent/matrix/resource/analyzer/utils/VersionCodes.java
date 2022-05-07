@@ -16,7 +16,6 @@
 package com.tencent.matrix.resource.analyzer.utils;
 
 /**
- * Created by tangyinsheng on 2017/7/3.
  *
  * This class is ported from android sdk.
  */

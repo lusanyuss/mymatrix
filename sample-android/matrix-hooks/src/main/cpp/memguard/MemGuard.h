@@ -1,5 +1,4 @@
 //
-// Created by tomystang on 2020/11/6.
 //
 
 #ifndef __MEMGUARD_MEMGUARD_H__

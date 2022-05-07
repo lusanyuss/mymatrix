@@ -1,5 +1,5 @@
 //
-// Created by tomystang on 2019/6/20.
+//
 //
 
 #ifndef LIBUNWINDSTACK_LOG_H

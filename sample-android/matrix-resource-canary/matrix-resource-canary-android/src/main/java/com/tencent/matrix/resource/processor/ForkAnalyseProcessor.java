@@ -15,7 +15,7 @@ import java.io.File;
 /**
  * HPROF file analysis processor using fork dump.
  *
- * @author aurorani
+ * 
  * @since 2021/10/25
  */
 public class ForkAnalyseProcessor extends BaseLeakProcessor {

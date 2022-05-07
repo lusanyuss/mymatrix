@@ -1,5 +1,4 @@
 //
-// Created by tomystang on 2021/2/2.
 //
 
 #ifndef __MEMGUARD_PATHS_H__

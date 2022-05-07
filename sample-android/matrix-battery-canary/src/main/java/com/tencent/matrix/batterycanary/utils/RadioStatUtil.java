@@ -11,7 +11,7 @@ import com.tencent.matrix.batterycanary.BuildConfig;
 import com.tencent.matrix.util.MatrixLog;
 
 /**
- * @author Kaede
+ * 
  * @since 2020/12/8
  */
 @SuppressWarnings("SpellCheckingInspection")
