@@ -1,0 +1,32 @@
+com/tencent/matrix/javalib/util/ReflectUtil.java
+ com.tencent.matrix.javalib.util.ReflectUtil
+com/tencent/matrix/javalib/util/Log.java
+ com.tencent.matrix.javalib.util.Log
+ com.tencent.matrix.javalib.util.Log$1
+ com.tencent.matrix.javalib.util.Log$LogImp
+com/android/dexdeps/FieldRef.java
+ com.android.dexdeps.FieldRef
+com/tencent/matrix/javalib/util/Pair.java
+ com.tencent.matrix.javalib.util.Pair
+com/tencent/matrix/javalib/util/Util.java
+ com.tencent.matrix.javalib.util.Util
+com/android/dexdeps/ClassRef.java
+ com.android.dexdeps.ClassRef
+com/android/dexdeps/Output.java
+ com.android.dexdeps.Output
+com/tencent/matrix/javalib/util/FileUtil.java
+ com.tencent.matrix.javalib.util.FileUtil
+com/tencent/matrix/javalib/util/IOUtil.java
+ com.tencent.matrix.javalib.util.IOUtil
+com/android/dexdeps/MethodRef.java
+ com.android.dexdeps.MethodRef
+com/android/dexdeps/DexData.java
+ com.android.dexdeps.DexData
+ com.android.dexdeps.DexData$ClassDefItem
+ com.android.dexdeps.DexData$FieldIdItem
+ com.android.dexdeps.DexData$HeaderItem
+ com.android.dexdeps.DexData$MethodIdItem
+ com.android.dexdeps.DexData$ProtoIdItem
+ com.android.dexdeps.DexData$TypeIdItem
+com/android/dexdeps/DexDataException.java
+ com.android.dexdeps.DexDataException
