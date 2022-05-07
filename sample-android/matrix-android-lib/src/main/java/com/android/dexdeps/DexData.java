@@ -27,13 +27,22 @@ import java.util.Arrays;
  */
 @SuppressWarnings("PMD")
 public class DexData {
+    //RandomAccessFile 是随机访问文件(包括读/写)的类。它支持对文件随机访问的读取和写入，
+    // 即我们可以从指定的位置读取/写入文件数据
     private RandomAccessFile mDexFile;
+    // DEX 文件头，记录了一些当前文件的信息以及其他数据结构在文件中的偏移量
     private HeaderItem mHeaderItem;
+    //字符串的偏移量
     private String[] mStrings;              // strings from string_data_*
+    // 类型信息的偏移量
     private TypeIdItem[] mTypeIds;
+    //方法声明的偏移量
     private ProtoIdItem[] mProtoIds;
+    //字段信息的偏移量
     private FieldIdItem[] mFieldIds;
+    // 方法信息（所在类，方法声明以及方法名）的偏移量
     private MethodIdItem[] mMethodIds;
+    //类信息的偏移量
     private ClassDefItem[] mClassDefs;
 
     private byte[] tmpBuf = new byte[4];
@@ -49,7 +58,7 @@ public class DexData {
     /**
      * Loads the contents of the DEX file into our data structures.
      *
-     * @throws IOException if we encounter a problem while reading
+     * @throws IOException      if we encounter a problem while reading
      * @throws DexDataException if the DEX contents look bad
      */
     public void load() throws IOException {
@@ -112,10 +121,14 @@ public class DexData {
         seek(8 + 4 + 20);  // magic, checksum, signature
         mHeaderItem.fileSize = readInt();
         mHeaderItem.headerSize = readInt();
-        /*mHeaderItem.endianTag =*/ readInt();
-        /*mHeaderItem.linkSize =*/ readInt();
-        /*mHeaderItem.linkOff =*/ readInt();
-        /*mHeaderItem.mapOff =*/ readInt();
+        /*mHeaderItem.endianTag =*/
+        readInt();
+        /*mHeaderItem.linkSize =*/
+        readInt();
+        /*mHeaderItem.linkOff =*/
+        readInt();
+        /*mHeaderItem.mapOff =*/
+        readInt();
         mHeaderItem.stringIdsSize = readInt();
         mHeaderItem.stringIdsOff = readInt();
         mHeaderItem.typeIdsSize = readInt();
@@ -128,13 +141,15 @@ public class DexData {
         mHeaderItem.methodIdsOff = readInt();
         mHeaderItem.classDefsSize = readInt();
         mHeaderItem.classDefsOff = readInt();
-        /*mHeaderItem.dataSize =*/ readInt();
-        /*mHeaderItem.dataOff =*/ readInt();
+        /*mHeaderItem.dataSize =*/
+        readInt();
+        /*mHeaderItem.dataOff =*/
+        readInt();
     }
 
     /**
      * Loads the string table out of the DEX.
-     *
+     * <p>
      * First we read all of the string_id_items, then we read all of the
      * string_data_item.  Doing it this way should allow us to avoid
      * seeking around in the file.
@@ -276,13 +291,20 @@ public class DexData {
             mClassDefs[i] = new ClassDefItem();
             mClassDefs[i].classIdx = readInt();
 
-            /* access_flags = */ readInt();
-            /* superclass_idx = */ readInt();
-            /* interfaces_off = */ readInt();
-            /* source_file_idx = */ readInt();
-            /* annotations_off = */ readInt();
-            /* class_data_off = */ readInt();
-            /* static_values_off = */ readInt();
+            /* access_flags = */
+            readInt();
+            /* superclass_idx = */
+            readInt();
+            /* interfaces_off = */
+            readInt();
+            /* source_file_idx = */
+            readInt();
+            /* annotations_off = */
+            readInt();
+            /* class_data_off = */
+            readInt();
+            /* static_values_off = */
+            readInt();
 
             //System.out.println(i + ": " + mClassDefs[i].classIdx + " " +
             //    mStrings[mTypeIds[mClassDefs[i].classIdx].descriptorIdx]);
@@ -367,7 +389,7 @@ public class DexData {
         for (int i = 0; i < mTypeIds.length; i++) {
             if (!mTypeIds[i].internal) {
                 sparseRefs[i] =
-                    new ClassRef(mStrings[mTypeIds[i].descriptorIdx]);
+                        new ClassRef(mStrings[mTypeIds[i].descriptorIdx]);
                 count++;
             }
         }
@@ -500,7 +522,6 @@ public class DexData {
     }
 
 
-
     /**
      * Returns the list of all method references.
      */
@@ -607,7 +628,7 @@ public class DexData {
 
     /**
      * Reads a UTF-8 string.
-     *
+     * <p>
      * We don't know how long the UTF-8 string is, so we have to read one
      * byte at a time.  We could make an educated guess based on the
      * utf16_size and seek back if we get it wrong, but seeking backward
@@ -652,7 +673,7 @@ public class DexData {
 
         /* expected magic values */
         public static final byte[] DEX_FILE_MAGIC_v035 =
-            "dex\n035\0".getBytes(StandardCharsets.US_ASCII);
+                "dex\n035\0".getBytes(StandardCharsets.US_ASCII);
 
         // Dex version 036 skipped because of an old dalvik bug on some versions
         // of android where dex files with that version number would erroneously
@@ -660,11 +681,11 @@ public class DexData {
 
         // V037 was introduced in API LEVEL 24
         public static final byte[] DEX_FILE_MAGIC_v037 =
-            "dex\n037\0".getBytes(StandardCharsets.US_ASCII);
+                "dex\n037\0".getBytes(StandardCharsets.US_ASCII);
 
         // V038 was introduced in API LEVEL 26
         public static final byte[] DEX_FILE_MAGIC_v038 =
-            "dex\n038\0".getBytes(StandardCharsets.US_ASCII);
+                "dex\n038\0".getBytes(StandardCharsets.US_ASCII);
 
         // Dex version 039: Android "P" and beyond.
         public static final byte[] DEX_FILE_MAGIC_v039 =
@@ -680,7 +701,7 @@ public class DexData {
 
     /**
      * Holds the contents of a type_id_item.
-     *
+     * <p>
      * This is chiefly a list of indices into the string table.  We need
      * some additional bits of data, such as whether or not the type ID
      * represents a class defined in this DEX, so we use an object for
@@ -724,7 +745,7 @@ public class DexData {
 
     /**
      * Holds the contents of a class_def_item.
-     *
+     * <p>
      * We don't really need a class for this, but there's some stuff in
      * the class_def_item that we might want later.
      */

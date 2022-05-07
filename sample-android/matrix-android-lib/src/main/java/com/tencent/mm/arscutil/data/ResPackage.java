@@ -7,10 +7,12 @@ import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.List;
 
+
 /**
-
+ * RES_TABLE_PACKAGE_TYPE 中包含了：
+ * 头部、资源类型字符串常量池、资源项名称字符串常量池、
+ * 多个子chunk(RES_TABLE_TYPE_SPEC_TYPE和RES_TABLE_TYPE_TYPE );
  */
-
 public class ResPackage extends ResChunk {
 
     private int id; // package id, 4 bytes
@@ -19,7 +21,9 @@ public class ResPackage extends ResChunk {
     private int lastPublicType; // 4 bytes
     private int resNamePoolOffset; // 资源项名称 stringPool offset, 4 bytes
     private int lastPublicName; // 4 bytes
+    //资源类型字符串常量池,类型为：RES_STRING_POOL_TYPE，内容为:[anim，attr，bool，color，dimen，drawable，id，integer，interpolator，layout，mipmap，string，style]
     private ResStringBlock resTypePool; // 资源类型 string pool
+    //资源项名称字符串常量池
     private ResStringBlock resNamePool; // 资源项名称 string pool
     private List<ResChunk> resTypeArray; // 保存资源类型spec或者资源详细信息的数组
 
