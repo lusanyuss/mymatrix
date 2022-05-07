@@ -43,10 +43,12 @@ public class TestTrafficActivity extends Activity {
         ((Button)findViewById(R.id.test_traffic)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //启动下载
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         downloading = true;
+                        //启动流量收集器
                         startTrafficCollector();
                         downloadAPkByHttpUrlConnection("https://dldir1.qq.com/weixin/android/weixin8018android2060_arm64.apk");
                         downloading = false;
