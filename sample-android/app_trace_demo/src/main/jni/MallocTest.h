@@ -1,6 +1,0 @@
-#ifndef LIBWXPERF_JNI_MALLOCTEST_H
-#define LIBWXPERF_JNI_MALLOCTEST_H
-
-void malloc_test();
-
-#endif //LIBWXPERF_JNI_MALLOCTEST_H

@@ -1,6 +1,6 @@
 apply from: "$rootDir/gradle/Arguments.gradle"
 include ':app'
-include ':app_trace_demo'
+//include ':app_trace_demo'
 // Gradle plugin
 //include ':matrix-gradle-plugin'
 

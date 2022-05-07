@@ -100,6 +100,10 @@ public class TestTraceMainActivity extends Activity implements IAppForeground {
     }
 
 
+    /**
+     * Monitor Activity Startup Duration
+     * @param view
+     */
     public void testEnter(View view) {
         Intent intent = new Intent(this, TestEnterActivity.class);
         startActivity(intent);

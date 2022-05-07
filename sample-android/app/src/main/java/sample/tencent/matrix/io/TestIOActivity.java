@@ -6,10 +6,13 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.tencent.matrix.Matrix;
 import com.tencent.matrix.iocanary.IOCanaryPlugin;
@@ -22,11 +25,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import sample.tencent.matrix.R;
 import sample.tencent.matrix.issue.IssueFilter;
-
 
 
 public class TestIOActivity extends Activity {
@@ -49,10 +49,7 @@ public class TestIOActivity extends Activity {
     }
 
     private void requestPer() {
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 Toast.makeText(this, "please give me the permission", Toast.LENGTH_SHORT).show();
@@ -153,7 +150,7 @@ public class TestIOActivity extends Activity {
             FileInputStream fis = new FileInputStream(f);
             int count = 0;
             while (fis.read(buf) != -1) {
-//                MatrixLog.i(TAG, "read %d", ++count);
+                //                MatrixLog.i(TAG, "read %d", ++count);
             }
             fis.close();
         } catch (FileNotFoundException e) {
@@ -172,7 +169,7 @@ public class TestIOActivity extends Activity {
             FileInputStream fis = new FileInputStream(f);
             int count = 0;
             while (fis.read(buf) != -1) {
-//                MatrixLog.i(TAG, "read %d", ++count);
+                //                MatrixLog.i(TAG, "read %d", ++count);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
