@@ -46,6 +46,9 @@ public class ActivityThreadHacker {
         void onApplicationCreateEnd();
     }
 
+    /**
+     * HackCallback封装系统回调
+     */
     public static void hackSysHandlerCallback() {
         try {
             sApplicationCreateBeginTime = SystemClock.uptimeMillis();

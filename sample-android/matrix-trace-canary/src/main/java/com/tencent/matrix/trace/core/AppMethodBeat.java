@@ -54,6 +54,7 @@ public class AppMethodBeat implements BeatLifecycle {
     private static final Object updateTimeLock = new Object();
     private static volatile boolean isPauseUpdateTime = false;
     private static Runnable checkStartExpiredRunnable = null;
+
     private static LooperMonitor.LooperDispatchListener looperMonitorListener = new LooperMonitor.LooperDispatchListener() {
         @Override
         public boolean isValid() {
@@ -72,6 +73,7 @@ public class AppMethodBeat implements BeatLifecycle {
             AppMethodBeat.dispatchEnd();
         }
     };
+
     private static Runnable realReleaseRunnable = new Runnable() {
         @Override
         public void run() {
@@ -79,6 +81,7 @@ public class AppMethodBeat implements BeatLifecycle {
         }
     };
 
+    //10秒延迟release
     static {
         MatrixHandlerThread.getDefaultHandler().postDelayed(realReleaseRunnable, Constants.DEFAULT_RELEASE_BUFFER_DELAY);
     }
@@ -173,6 +176,7 @@ public class AppMethodBeat implements BeatLifecycle {
 
         sHandler.removeCallbacksAndMessages(null);
         sHandler.postDelayed(sUpdateDiffTimeRunnable, Constants.TIME_UPDATE_CYCLE_MS);
+        //10秒后还没开始就,是启动过期
         sHandler.postDelayed(checkStartExpiredRunnable = new Runnable() {
             @Override
             public void run() {

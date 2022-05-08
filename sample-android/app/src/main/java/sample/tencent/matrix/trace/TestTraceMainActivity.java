@@ -1,5 +1,3 @@
-
-
 package sample.tencent.matrix.trace;
 
 import android.app.Activity;
@@ -12,6 +10,7 @@ import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -33,6 +32,12 @@ public class TestTraceMainActivity extends Activity implements IAppForeground {
     private static String TAG = "Matrix.TestTraceMainActivity";
     FrameDecorator decorator;
     private static final int PERMISSION_REQUEST_CODE = 0x02;
+    private Button mTestFps;
+    private Button mTestEnter;
+    private Button mTestAnr;
+    private Button mTestStopAppMethodBeat;
+    private Button mTestPrintTrace;
+    private Button mTestAnrSignalHandler;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -53,6 +58,7 @@ public class TestTraceMainActivity extends Activity implements IAppForeground {
         }
 
         AppActiveMatrixDelegate.INSTANCE.addListener(this);
+        initView();
     }
 
 
@@ -102,14 +108,13 @@ public class TestTraceMainActivity extends Activity implements IAppForeground {
 
     /**
      * Monitor Activity Startup Duration
-     * @param view
      */
-    public void testEnter(View view) {
+    public void testStartEnter() {
         Intent intent = new Intent(this, TestEnterActivity.class);
         startActivity(intent);
     }
 
-    public void testFps(View view) {
+    public void testFps() {
         Intent intent = new Intent(this, TestFpsActivity.class);
         startActivity(intent);
     }
@@ -118,15 +123,15 @@ public class TestTraceMainActivity extends Activity implements IAppForeground {
         A();
     }
 
-    public void testANR(final View view) {
+    public void testANR() {
         A();
     }
 
-    public void testPrintTrace(final View view) {
+    public void testPrintTrace() {
         SignalAnrTracer.printTrace();
     }
 
-    public void testSignalANR(final View view) {
+    public void testSignalANR() {
         try {
             Thread.sleep(20000);
         } catch (InterruptedException e) {
@@ -197,15 +202,7 @@ public class TestTraceMainActivity extends Activity implements IAppForeground {
     private boolean isStop = false;
 
     public void stopAppMethodBeat(View view) {
-        AppMethodBeat appMethodBeat = Matrix.with().getPluginByClass(TracePlugin.class).getAppMethodBeat();
-        if (isStop) {
-            Toast.makeText(this, "start AppMethodBeat", Toast.LENGTH_LONG).show();
-            appMethodBeat.onStart();
-        } else {
-            Toast.makeText(this, "stop AppMethodBeat", Toast.LENGTH_LONG).show();
-            appMethodBeat.onStop();
-        }
-        isStop = !isStop;
+
     }
 
     public void evilMethod5(boolean is) {
@@ -219,6 +216,60 @@ public class TestTraceMainActivity extends Activity implements IAppForeground {
         } finally {
             Log.i("", "");
         }
+    }
+
+    private void initView() {
+        mTestFps = (Button) findViewById(R.id.test_fps);
+        mTestEnter = (Button) findViewById(R.id.test_enter);
+        mTestAnr = (Button) findViewById(R.id.test_anr);
+        mTestStopAppMethodBeat = (Button) findViewById(R.id.test_stop_app_method_beat);
+        mTestPrintTrace = (Button) findViewById(R.id.test_print_trace);
+        mTestAnrSignalHandler = (Button) findViewById(R.id.test_anr_signal_handler);
+
+        mTestFps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testFps();
+            }
+        });
+        mTestEnter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testStartEnter();
+            }
+        });
+        mTestAnr.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testANR();
+            }
+        });
+        mTestStopAppMethodBeat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AppMethodBeat appMethodBeat = Matrix.with().getPluginByClass(TracePlugin.class).getAppMethodBeat();
+                if (isStop) {
+                    Toast.makeText(TestTraceMainActivity.this, "start AppMethodBeat", Toast.LENGTH_LONG).show();
+                    appMethodBeat.onStart();
+                } else {
+                    Toast.makeText(TestTraceMainActivity.this, "stop AppMethodBeat", Toast.LENGTH_LONG).show();
+                    appMethodBeat.onStop();
+                }
+                isStop = !isStop;
+            }
+        });
+        mTestPrintTrace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testPrintTrace();
+            }
+        });
+        mTestAnrSignalHandler.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testSignalANR();
+            }
+        });
     }
 
     class AssertionArrayException extends Exception {
