@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
+
 import androidx.annotation.RequiresApi;
 
 import com.tencent.matrix.trace.config.IssueFixConfig;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
+ *
  **/
 public class ActivityThreadHacker {
     private static final String TAG = "Matrix.ActivityThreadHacker";
@@ -117,9 +119,9 @@ public class ActivityThreadHacker {
                     if (msg.what == SERIVCE_ARGS || msg.what == STOP_SERVICE
                             || msg.what == STOP_ACTIVITY_SHOW || msg.what == STOP_ACTIVITY_HIDE
                             || msg.what == SLEEPING) {
-                            MatrixLog.i(TAG, "Fix SP ANR is enabled");
-                            fix();
-                        }
+                        MatrixLog.i(TAG, "Fix SP ANR is enabled");
+                        fix();
+                    }
                 }
             }
 
@@ -135,7 +137,8 @@ public class ActivityThreadHacker {
             }
 
             if (!isCreated) {
-                if (isLaunchActivity || msg.what == CREATE_SERVICE
+                if (isLaunchActivity
+                        || msg.what == CREATE_SERVICE
                         || msg.what == RECEIVER) { // todo for provider
                     ActivityThreadHacker.sApplicationCreateEndTime = SystemClock.uptimeMillis();
                     ActivityThreadHacker.sApplicationCreateScene = msg.what;
