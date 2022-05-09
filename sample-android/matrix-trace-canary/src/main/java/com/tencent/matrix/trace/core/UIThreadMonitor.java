@@ -23,11 +23,6 @@ public class UIThreadMonitor implements BeatLifecycle, Runnable {
 
     private static final String TAG = "Matrix.UIThreadMonitor";
     private static final String ADD_CALLBACK = "addCallbackLocked";
-    private volatile boolean isAlive = false;
-    private long[] dispatchTimeMs = new long[4];
-    private final HashSet<LooperObserver> observers = new HashSet<>();
-    private volatile long token = 0L;
-    private boolean isVsyncFrame = false;
     // The time of the oldest input event
     private static final int OLDEST_INPUT_EVENT = 3;
 
@@ -62,10 +57,22 @@ public class UIThreadMonitor implements BeatLifecycle, Runnable {
     public static final int DO_QUEUE_END_ERROR = -100;
 
     private static final int CALLBACK_LAST = CALLBACK_TRAVERSAL;
-
-    private final static UIThreadMonitor sInstance = new UIThreadMonitor();
-    private TraceConfig config;
+    private static final UIThreadMonitor sInstance = new UIThreadMonitor();
     private static boolean useFrameMetrics;
+
+    private static final int DO_QUEUE_DEFAULT = 0;
+    private static final int DO_QUEUE_BEGIN = 1;
+    private static final int DO_QUEUE_END = 2;
+
+
+
+    //对象属性
+    private volatile boolean isAlive = false;
+    private long[] dispatchTimeMs = new long[4];
+    private final HashSet<LooperObserver> observers = new HashSet<>();
+    private volatile long token = 0L;
+    private boolean isVsyncFrame = false;
+    private TraceConfig config;
     private Object callbackQueueLock;
     private Object[] callbackQueues;
     private Method addTraversalQueue;
@@ -77,9 +84,7 @@ public class UIThreadMonitor implements BeatLifecycle, Runnable {
     private int[] queueStatus = new int[CALLBACK_LAST + 1];
     private boolean[] callbackExist = new boolean[CALLBACK_LAST + 1]; // ABA
     private long[] queueCost = new long[CALLBACK_LAST + 1];
-    private static final int DO_QUEUE_DEFAULT = 0;
-    private static final int DO_QUEUE_BEGIN = 1;
-    private static final int DO_QUEUE_END = 2;
+
     private boolean isInit = false;
 
     public static UIThreadMonitor getMonitor() {
