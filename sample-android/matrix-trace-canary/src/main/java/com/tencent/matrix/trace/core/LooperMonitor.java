@@ -25,6 +25,9 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/**
+ *  对系统looper的Printer进行封装代理
+ */
 public class LooperMonitor implements MessageQueue.IdleHandler {
     private static final String TAG = "Matrix.LooperMonitor";
     private static final Map<Looper, LooperMonitor> sLooperMonitorMap = new ConcurrentHashMap<>();
@@ -84,6 +87,11 @@ public class LooperMonitor implements MessageQueue.IdleHandler {
         }
     }
 
+    /**
+     * 从映射表中获取LooperMonitor监视器
+     * @param looper
+     * @return
+     */
     public static LooperMonitor of(@NonNull Looper looper) {
         LooperMonitor looperMonitor = sLooperMonitorMap.get(looper);
         if (looperMonitor == null) {
@@ -93,6 +101,10 @@ public class LooperMonitor implements MessageQueue.IdleHandler {
         return looperMonitor;
     }
 
+    /**
+     * 给主线程的LooperMonitor监视器加一个分发监听
+     * @param listener
+     */
     static void register(LooperDispatchListener listener) {
         sMainMonitor.addListener(listener);
     }
@@ -100,6 +112,8 @@ public class LooperMonitor implements MessageQueue.IdleHandler {
     static void unregister(LooperDispatchListener listener) {
         sMainMonitor.removeListener(listener);
     }
+
+
 
     private final HashSet<LooperDispatchListener> listeners = new HashSet<>();
     private LooperPrinter printer;
@@ -138,6 +152,7 @@ public class LooperMonitor implements MessageQueue.IdleHandler {
         return looper;
     }
 
+    //1分钟重置一下printer
     @Override
     public boolean queueIdle() {
         if (SystemClock.uptimeMillis() - lastCheckPrinterTime >= CHECK_TIME) {

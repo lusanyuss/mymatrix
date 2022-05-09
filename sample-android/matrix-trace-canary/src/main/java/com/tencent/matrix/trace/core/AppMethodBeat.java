@@ -87,7 +87,7 @@ public class AppMethodBeat implements BeatLifecycle {
     }
 
     /**
-     * update time runnable
+     * update time runnable,刷新时间的线程
      */
     private static Runnable sUpdateDiffTimeRunnable = new Runnable() {
         @Override
@@ -159,6 +159,7 @@ public class AppMethodBeat implements BeatLifecycle {
 
     private static void realRelease() {
         synchronized (statusLock) {
+            //等同条件status!=STATUS_STARTED,如果启动10秒后没有开始,责把状态初始一下,
             if (status == STATUS_DEFAULT || status <= STATUS_READY) {
                 MatrixLog.i(TAG, "[realRelease] timestamp:%s", System.currentTimeMillis());
                 sHandler.removeCallbacksAndMessages(null);
@@ -244,7 +245,7 @@ public class AppMethodBeat implements BeatLifecycle {
                 mergeData(methodId, sIndex, true);
             } else {
                 sIndex = 0;
-                 mergeData(methodId, sIndex, true);
+                mergeData(methodId, sIndex, true);
             }
             ++sIndex;
             assertIn = false;
@@ -276,7 +277,7 @@ public class AppMethodBeat implements BeatLifecycle {
 
     /**
      * when the special method calls,it's will be called.
-     *
+     * <p>
      * called after {@link #i(int)}
      *
      * @param activity now at which activity

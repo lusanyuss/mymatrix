@@ -49,7 +49,7 @@ public class ActivityThreadHacker {
     }
 
     /**
-     * HackCallback封装系统回调
+     * HackCallback封装系统回调Handler.Callback
      */
     public static void hackSysHandlerCallback() {
         try {
