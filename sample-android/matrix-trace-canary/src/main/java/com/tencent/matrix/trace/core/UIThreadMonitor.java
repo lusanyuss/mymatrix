@@ -65,9 +65,8 @@ public class UIThreadMonitor implements BeatLifecycle, Runnable {
     private static final int DO_QUEUE_END = 2;
 
 
-
     //对象属性
-    private volatile boolean isAlive = false;
+    private volatile boolean isAlive = false;//是否start
     private long[] dispatchTimeMs = new long[4];
     private final HashSet<LooperObserver> observers = new HashSet<>();
     private volatile long token = 0L;
@@ -268,7 +267,9 @@ public class UIThreadMonitor implements BeatLifecycle, Runnable {
             synchronized (observers) {
                 for (LooperObserver observer : observers) {
                     if (observer.isDispatchBegin()) {
-                        observer.doFrame(AppActiveMatrixDelegate.INSTANCE.getVisibleScene(), startNs, endNs, isVsyncFrame, intendedFrameTimeNs, queueCost[CALLBACK_INPUT], queueCost[CALLBACK_ANIMATION], queueCost[CALLBACK_TRAVERSAL]);
+                        observer.doFrame(AppActiveMatrixDelegate.INSTANCE.getVisibleScene(),
+                                startNs, endNs, isVsyncFrame, intendedFrameTimeNs,
+                                queueCost[CALLBACK_INPUT], queueCost[CALLBACK_ANIMATION], queueCost[CALLBACK_TRAVERSAL]);
                     }
                 }
             }
