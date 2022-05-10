@@ -19,9 +19,6 @@ package com.tencent.mm.arscutil.data;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-/**
- * Created by jinqiuchen on 18/7/29.
- */
 
 public class ResTable extends ResChunk {
 

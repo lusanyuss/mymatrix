@@ -16,9 +16,6 @@
 
 package com.tencent.mm.arscutil.data;
 
-/**
- * Created by jinqiuchen on 18/7/29.
- */
 
 public class ArscConstants {
 

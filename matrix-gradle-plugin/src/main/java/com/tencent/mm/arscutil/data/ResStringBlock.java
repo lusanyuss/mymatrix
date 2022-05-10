@@ -23,9 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by jinqiuchen on 18/7/29.
- */
 
 public class ResStringBlock extends ResChunk {
 

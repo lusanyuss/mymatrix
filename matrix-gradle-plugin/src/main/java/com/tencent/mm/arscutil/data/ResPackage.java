@@ -21,9 +21,6 @@ import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * Created by jinqiuchen on 18/7/29.
- */
 
 public class ResPackage extends ResChunk {
 

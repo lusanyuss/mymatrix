@@ -4,8 +4,6 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
 /**
- * Created by habbyge on 2019/4/25.
- *
  * fix:
  * java.lang.TypeNotPresentException: Type android/content/res/TypedArray not present
  *     at org.objectweb.asm.ClassWriter.getCommonSuperClass(ClassWriter.java:1025)

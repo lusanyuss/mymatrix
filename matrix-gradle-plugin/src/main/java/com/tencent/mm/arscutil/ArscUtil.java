@@ -36,9 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Created by jinqiuchen on 18/7/29.
- */
 
 public class ArscUtil {
 

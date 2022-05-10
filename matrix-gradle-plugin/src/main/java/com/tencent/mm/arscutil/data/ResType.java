@@ -22,9 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by jinqiuchen on 18/7/29.
- */
 
 public class ResType extends ResChunk {
 

@@ -28,19 +28,6 @@ public class TraceClassLoader {
             urls.add(inputFile.toURI().toURL());
         }
 
-//        for (TransformInput inputs : Iterables.concat(invocation.getInputs(), invocation.getReferencedInputs())) {
-//            for (DirectoryInput directoryInput : inputs.getDirectoryInputs()) {
-//                if (directoryInput.getFile().isDirectory()) {
-//                    urls.add(directoryInput.getFile().toURI().toURL());
-//                }
-//            }
-//            for (JarInput jarInput : inputs.getJarInputs()) {
-//                if (jarInput.getFile().isFile()) {
-//                    urls.add(jarInput.getFile().toURI().toURL());
-//                }
-//            }
-//        }
-
         ImmutableList<URL> urlImmutableList = urls.build();
         URL[] classLoaderUrls = urlImmutableList.toArray(new URL[urlImmutableList.size()]);
         return new URLClassLoader(classLoaderUrls);

@@ -16,9 +16,6 @@
 
 package com.tencent.matrix.trace.retrace;
 
-/**
- * Created by caichongyang on 2017/6/3.
- */
 public class MethodInfo {
 
     private final String originalClassName;

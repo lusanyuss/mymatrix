@@ -22,9 +22,6 @@ import com.tencent.mm.arscutil.data.ResTable;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * Created by jinqiuchen on 18/7/29.
- */
 
 public class ArscWriter {
 
