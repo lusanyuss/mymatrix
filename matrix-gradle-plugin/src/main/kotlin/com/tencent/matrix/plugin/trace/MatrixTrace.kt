@@ -385,48 +385,48 @@ class MatrixTrace(
                     } else if (inputJarStatus == Status.REMOVED) {
                         jarOutput.delete()
                     }
-
                 } else {
                     resultOfJarInputToOut[jarInput] = jarOutput
                 }
-
-            } else {
-
-                // TODO for wechat
-                Log.i(TAG, "Special case for WeChat AutoDex. Its rootInput jar file is actually a txt file contains path list.")
-                // Special case for WeChat AutoDex. Its rootInput jar file is actually
-                // a txt file contains path list.
-                jarInput.inputStream().bufferedReader().useLines { lines ->
-                    lines.forEach { realJarInputFullPath ->
-                        val realJarInput = File(realJarInputFullPath)
-                        // dest jar, moved to extra guard intermediate output dir.
-                        val realJarOutput = File(traceClassFileOutput, getUniqueJarName(realJarInput))
-
-                        if (realJarInput.exists() && IOUtil.isRealZipOrJar(realJarInput)) {
-                            resultOfJarInputToOut[realJarInput] = realJarOutput
-                        } else {
-                            realJarOutput.delete()
-                            if (realJarInput.exists() && realJarInput.isDirectory) {
-                                val realJarOutputDir = File(traceClassFileOutput, realJarInput.name)
-                                if (!realJarOutput.exists()) {
-                                    realJarOutput.mkdirs()
-                                }
-                                resultOfDirInputToOut[realJarInput] = realJarOutputDir
-                            }
-
-                        }
-                        // write real output full path to the fake jar at rootOutput.
-                        jarOutput.outputStream().bufferedWriter().use { bw ->
-                            bw.write(realJarOutput.absolutePath)
-                            bw.newLine()
-                        }
-                    }
-                }
-
-                jarInput.delete() // delete raw inputList
             }
-
             legacyReplaceFile?.invoke(jarInput, jarOutput)
+//            else {
+//
+//                // TODO for wechat
+//                Log.i(TAG, "Special case for WeChat AutoDex. Its rootInput jar file is actually a txt file contains path list.")
+//                // Special case for WeChat AutoDex. Its rootInput jar file is actually
+//                // a txt file contains path list.
+//                jarInput.inputStream().bufferedReader().useLines { lines ->
+//                    lines.forEach { realJarInputFullPath ->
+//                        val realJarInput = File(realJarInputFullPath)
+//                        // dest jar, moved to extra guard intermediate output dir.
+//                        val realJarOutput = File(traceClassFileOutput, getUniqueJarName(realJarInput))
+//
+//                        if (realJarInput.exists() && IOUtil.isRealZipOrJar(realJarInput)) {
+//                            resultOfJarInputToOut[realJarInput] = realJarOutput
+//                        } else {
+//                            realJarOutput.delete()
+//                            if (realJarInput.exists() && realJarInput.isDirectory) {
+//                                val realJarOutputDir = File(traceClassFileOutput, realJarInput.name)
+//                                if (!realJarOutput.exists()) {
+//                                    realJarOutput.mkdirs()
+//                                }
+//                                resultOfDirInputToOut[realJarInput] = realJarOutputDir
+//                            }
+//
+//                        }
+//                        // write real output full path to the fake jar at rootOutput.
+//                        jarOutput.outputStream().bufferedWriter().use { bw ->
+//                            bw.write(realJarOutput.absolutePath)
+//                            bw.newLine()
+//                        }
+//                    }
+//                }
+//
+//                jarInput.delete() // delete raw inputList
+//            }
+
+        
         }
     }
 
