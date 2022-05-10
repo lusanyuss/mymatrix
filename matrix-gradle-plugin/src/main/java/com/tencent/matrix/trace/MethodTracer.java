@@ -218,7 +218,7 @@ public class MethodTracer {
                     ClassVisitor classVisitor = new TraceClassAdapter(AgpCompat.getAsmApi(), classWriter);
                     classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
                     byte[] data = classWriter.toByteArray();
-//
+                    //
                     if (!skipCheckClass) {
                         try {
                             ClassReader r = new ClassReader(data);
@@ -227,7 +227,7 @@ public class MethodTracer {
                             r.accept(v, ClassReader.EXPAND_FRAMES);
                         } catch (Throwable e) {
                             System.err.println("trace jar output ERROR: " + e.getMessage() + ", " + zipEntryName);
-//                        e.printStackTrace();
+                            //                        e.printStackTrace();
                             traceError = true;
                         }
                     }
@@ -312,6 +312,7 @@ public class MethodTracer {
             this.superName = superName;
             this.isActivityOrSubClass = isActivityOrSubClass(className, collectedClassExtendMap);
             this.isNeedTrace = MethodCollector.isNeedTrace(configuration, className, mappingCollector);
+            //接口或者抽象类
             if ((access & Opcodes.ACC_ABSTRACT) > 0 || (access & Opcodes.ACC_INTERFACE) > 0) {
                 this.isABSClass = true;
             }
@@ -325,6 +326,7 @@ public class MethodTracer {
                 hasWindowFocusMethod = MethodCollector.isWindowFocusChangeMethod(name, desc);
             }
             if (isABSClass) {
+                //过滤接口或者抽象类
                 return super.visitMethod(access, name, desc, signature, exceptions);
             } else {
                 MethodVisitor methodVisitor = cv.visitMethod(access, name, desc, signature, exceptions);
@@ -379,23 +381,6 @@ public class MethodTracer {
             }
         }
 
-        // pass jni method trace, because its super method can cover it
-        /*@Override
-        public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-            String nativeMethodName = owner.replace("/", ".") + "." + name;
-            TraceMethod traceMethod = collectedMethodMap.get(nativeMethodName);
-            if (traceMethod != null && traceMethod.isNativeMethod()) {
-                traceMethodCount.incrementAndGet();
-                mv.visitLdcInsn(traceMethod.id);
-                mv.visitMethodInsn(INVOKESTATIC, TraceBuildConstants.MATRIX_TRACE_CLASS, "i", "(I)V", false);
-            }
-            super.visitMethodInsn(opcode, owner, name, desc, itf);
-            if (traceMethod != null && traceMethod.isNativeMethod()) {
-                traceMethodCount.incrementAndGet();
-                mv.visitLdcInsn(traceMethod.id);
-                mv.visitMethodInsn(INVOKESTATIC, TraceBuildConstants.MATRIX_TRACE_CLASS, "o", "(I)V", false);
-            }
-        }*/
 
         @Override
         protected void onMethodExit(int opcode) {
@@ -419,6 +404,13 @@ public class MethodTracer {
         }
     }
 
+    /**
+     * 判断activiy的子类
+     *
+     * @param className
+     * @param mCollectedClassExtendMap
+     * @return
+     */
     private boolean isActivityOrSubClass(String className, ConcurrentHashMap<String, String> mCollectedClassExtendMap) {
         className = className.replace(".", "/");
         boolean isActivity = className.equals(TraceBuildConstants.MATRIX_TRACE_ACTIVITY_CLASS)
@@ -442,6 +434,13 @@ public class MethodTracer {
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, TraceBuildConstants.MATRIX_TRACE_CLASS, "at", "(Landroid/app/Activity;Z)V", false);
     }
 
+    /**
+     * 给activity加入  WindowFocusChangeMethod 方法
+     *
+     * @param cv
+     * @param classname
+     * @param superClassName
+     */
     private void insertWindowFocusChangeMethod(ClassVisitor cv, String classname, String superClassName) {
         MethodVisitor methodVisitor = cv.visitMethod(Opcodes.ACC_PUBLIC, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD,
                 TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS, null, null);

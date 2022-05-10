@@ -1,0 +1,23 @@
+apply plugin: 'maven'
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: 'https://packages.aliyun.com/maven/repository/2223477-release-LFshLE/') {
+                authentication(
+                        userName: '626bdb89606fff01d45ef819',
+                        password: 'Z2-m6AzWbAg_'
+                )
+            }
+            snapshotRepository(url: 'https://packages.aliyun.com/maven/repository/2223477-snapshot-w7PgoE/') {
+                authentication(
+                        userName: '626bdb89606fff01d45ef819',
+                        password: 'Z2-m6AzWbAg_'
+                )
+            }
+//            pom.version = rootProject.ext.VERSION_NAME
+            pom.version='2.0.5.1'
+            pom.groupId = rootProject.ext.GROUP
+            pom.artifactId = POM_ARTIFACT_ID
+        }
+    }
+}
