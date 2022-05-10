@@ -33,6 +33,11 @@ public class Configuration {
         this.skipCheckClass = skipCheckClass;
     }
 
+    /**
+     * 黑名单解析
+     * @param processor
+     * @return
+     */
     public int parseBlockFile(MappingCollector processor) {
         String blockStr = TraceBuildConstants.DEFAULT_BLOCK_TRACE
                 + FileUtil.readFileAsString(blockListFilePath);

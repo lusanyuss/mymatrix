@@ -46,7 +46,7 @@ public class MethodCollector {
 
     //className->superName
     private final ConcurrentHashMap<String, String> collectedClassExtendMap = new ConcurrentHashMap<>();
-
+    //被忽略的方法搜集:名称->方法信息bean
     private final ConcurrentHashMap<String, TraceMethod> collectedIgnoreMethodMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, TraceMethod> collectedMethodMap;
     private final Configuration configuration;
@@ -71,6 +71,14 @@ public class MethodCollector {
         return collectedMethodMap;
     }
 
+    /**
+     * 对所有的类进行插桩,并保存,收集的方法和忽略方法
+     *
+     * @param srcFolderList
+     * @param dependencyJarList
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public void collect(Set<File> srcFolderList, Set<File> dependencyJarList) throws ExecutionException, InterruptedException {
         List<Future> futures = new LinkedList<>();
 
@@ -115,6 +123,9 @@ public class MethodCollector {
             }
         }));
 
+        /**
+         * 链表填满后就可以获取顺序结果
+         */
         for (Future future : futures) {
             future.get();
         }
@@ -123,6 +134,9 @@ public class MethodCollector {
     }
 
 
+    /**
+     * 源码插桩线程
+     */
     class CollectSrcTask implements Runnable {
 
         File classFile;
@@ -152,6 +166,9 @@ public class MethodCollector {
         }
     }
 
+    /**
+     * jar包插桩线程
+     */
     class CollectJarTask implements Runnable {
 
         File fromJar;
@@ -191,6 +208,11 @@ public class MethodCollector {
     }
 
 
+    /**
+     * 保存收集到的忽略的收集到的方法
+     *
+     * @param mappingCollector
+     */
     private void saveIgnoreCollectedMethod(MappingCollector mappingCollector) {
 
         File methodMapFile = new File(configuration.ignoreMethodMapFilePath);
@@ -201,6 +223,7 @@ public class MethodCollector {
         ignoreMethodList.addAll(collectedIgnoreMethodMap.values());
         Log.i(TAG, "[saveIgnoreCollectedMethod] size:%s path:%s", collectedIgnoreMethodMap.size(), methodMapFile.getAbsolutePath());
 
+        //排序
         Collections.sort(ignoreMethodList, new Comparator<TraceMethod>() {
             @Override
             public int compare(TraceMethod o1, TraceMethod o2) {
@@ -208,6 +231,7 @@ public class MethodCollector {
             }
         });
 
+        //输出文件
         PrintWriter pw = null;
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(methodMapFile, false);
@@ -229,7 +253,11 @@ public class MethodCollector {
         }
     }
 
-
+    /**
+     * 保存混淆方法
+     *
+     * @param mappingCollector
+     */
     private void saveCollectedMethod(MappingCollector mappingCollector) {
         File methodMapFile = new File(configuration.methodMapFilePath);
         if (!methodMapFile.getParentFile().exists()) {
@@ -237,6 +265,9 @@ public class MethodCollector {
         }
         List<TraceMethod> methodList = new ArrayList<>();
 
+        /**
+         * handler的dispatchMessage也要加打点跟踪方法
+         */
         TraceMethod extra = TraceMethod.create(TraceBuildConstants.METHOD_ID_DISPATCH, Opcodes.ACC_PUBLIC, "android.os.Handler",
                 "dispatchMessage", "(Landroid.os.Message;)V");
         collectedMethodMap.put(extra.getMethodName(), extra);
@@ -288,6 +319,7 @@ public class MethodCollector {
             if ((access & Opcodes.ACC_ABSTRACT) > 0 || (access & Opcodes.ACC_INTERFACE) > 0) {
                 this.isABSClass = true;
             }
+            //收集类和父类映射关系
             collectedClassExtendMap.put(className, superName);
         }
 
@@ -300,6 +332,7 @@ public class MethodCollector {
                 if (!hasWindowFocusMethod) {
                     hasWindowFocusMethod = isWindowFocusChangeMethod(name, desc);
                 }
+                //收集混淆和不混淆方法的映射关系
                 return new CollectMethodNode(className, access, name, desc, signature, exceptions);
             }
         }
@@ -345,6 +378,11 @@ public class MethodCollector {
 
         }
 
+        /**
+         * get或者set方法
+         *
+         * @return
+         */
         private boolean isGetSetMethod() {
             int ignoreCount = 0;
             ListIterator<AbstractInsnNode> iterator = instructions.iterator();
@@ -398,7 +436,11 @@ public class MethodCollector {
             return true;
         }
 
-
+        /**
+         * 空方法
+         *
+         * @return
+         */
         private boolean isEmptyMethod() {
             ListIterator<AbstractInsnNode> iterator = instructions.iterator();
             while (iterator.hasNext()) {
@@ -419,6 +461,14 @@ public class MethodCollector {
         return null != name && null != desc && name.equals(TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD) && desc.equals(TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS);
     }
 
+    /**
+     * 是否需要跟踪
+     *
+     * @param configuration
+     * @param clsName
+     * @param mappingCollector
+     * @return
+     */
     public static boolean isNeedTrace(Configuration configuration, String clsName, MappingCollector mappingCollector) {
         boolean isNeed = true;
         if (configuration.blockSet.contains(clsName)) {
@@ -457,6 +507,12 @@ public class MethodCollector {
         }
     }
 
+    /**
+     * 过滤系统的一些文件:"R.class", "R$", "Manifest", "BuildConfig"
+     *
+     * @param fileName
+     * @return
+     */
     public static boolean isNeedTraceFile(String fileName) {
         if (fileName.endsWith(".class")) {
             for (String unTraceCls : TraceBuildConstants.UN_TRACE_CLASS) {

@@ -75,6 +75,7 @@ public class MappingReader {
     }
 
     /**
+     * 解析mapping.txt把类的混淆映射保存起来,返回类名
      * @param line read content
      * @param mappingProcessor
      * @return
@@ -103,11 +104,12 @@ public class MappingReader {
 
     /**
      * Parses the a class member mapping
+     * 解析mapping.txt下面的字段和方法
      *
      * @param className
      * @param line
      * @param mappingProcessor parse line such as
-     *                         ___ ___ -> ___
+     *                         ___ ___ -> ___   字段混淆
      *                         ___:___:___ ___(___) -> ___
      *                         ___:___:___ ___(___):___ -> ___
      *                         ___:___:___ ___(___):___:___ -> ___
