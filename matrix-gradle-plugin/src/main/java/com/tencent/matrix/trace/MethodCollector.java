@@ -44,6 +44,7 @@ public class MethodCollector {
     private final MappingCollector mappingCollector;
 
 
+    //className->superName
     private final ConcurrentHashMap<String, String> collectedClassExtendMap = new ConcurrentHashMap<>();
 
     private final ConcurrentHashMap<String, TraceMethod> collectedIgnoreMethodMap = new ConcurrentHashMap<>();
@@ -74,6 +75,7 @@ public class MethodCollector {
         List<Future> futures = new LinkedList<>();
 
         for (File srcFile : srcFolderList) {
+            //文件全部装到classFileList
             ArrayList<File> classFileList = new ArrayList<>();
             if (srcFile.isDirectory()) {
                 listClassFiles(classFileList, srcFile);
@@ -81,11 +83,13 @@ public class MethodCollector {
                 classFileList.add(srcFile);
             }
 
+            //对源码的所有的文件进行插桩
             for (File classFile : classFileList) {
                 futures.add(executor.submit(new CollectSrcTask(classFile)));
             }
         }
 
+        //对jar文件进行插桩
         for (File jarFile : dependencyJarList) {
             futures.add(executor.submit(new CollectJarTask(jarFile)));
         }
@@ -95,6 +99,7 @@ public class MethodCollector {
         }
         futures.clear();
 
+        //保存忽略收集的方法
         futures.add(executor.submit(new Runnable() {
             @Override
             public void run() {
@@ -102,6 +107,7 @@ public class MethodCollector {
             }
         }));
 
+        //保存收集的方法
         futures.add(executor.submit(new Runnable() {
             @Override
             public void run() {

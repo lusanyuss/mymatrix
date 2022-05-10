@@ -13,7 +13,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
 
-
 public class TraceClassLoader {
 
     public static URLClassLoader getClassLoader(Project project, Collection<File> inputFiles)

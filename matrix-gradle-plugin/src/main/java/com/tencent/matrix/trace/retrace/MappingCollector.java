@@ -1,4 +1,18 @@
-
+/*
+ * Tencent is pleased to support the open source community by making wechat-matrix available.
+ * Copyright (C) 2018 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the BSD 3-Clause License (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://opensource.org/licenses/BSD-3-Clause
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.tencent.matrix.trace.retrace;
 
@@ -12,16 +26,30 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-
+/**
+ * Created by caichongyang on 2017/8/3.
+ */
 public class MappingCollector implements MappingProcessor {
     private final static String TAG = "MappingCollector";
     private final static int DEFAULT_CAPACITY = 2000;
+    //混淆类名->原始类名 映射
     public HashMap<String, String> mObfuscatedRawClassMap = new HashMap<>(DEFAULT_CAPACITY);
+    //原始类名->混淆类名 映射
     public HashMap<String, String> mRawObfuscatedClassMap = new HashMap<>(DEFAULT_CAPACITY);
+    //原始包->混淆包 映射
     public HashMap<String, String> mRawObfuscatedPackageMap = new HashMap<>(DEFAULT_CAPACITY);
+    //混淆类名->方法映射
     private final Map<String, Map<String, Set<MethodInfo>>> mObfuscatedClassMethodMap = new HashMap<>();
+    //原始类方法映射
     private final Map<String, Map<String, Set<MethodInfo>>> mOriginalClassMethodMap = new HashMap<>();
 
+    /**
+     * 主要是保存映射关系
+     *
+     * @param className    the original class name.
+     * @param newClassName the new class name.
+     * @return
+     */
     @Override
     public boolean processClassMapping(String className, String newClassName) {
         this.mObfuscatedRawClassMap.put(newClassName, className);
@@ -36,6 +64,17 @@ public class MappingCollector implements MappingProcessor {
         return true;
     }
 
+    /**
+     * 保存  混淆类->混淆方法->混淆方法
+     * 和   类->方法->方法 信息映射关系
+     *
+     * @param className        the original class name.
+     * @param methodReturnType the original external method return type.
+     * @param methodName       the original external method name.
+     * @param methodArguments  the original external method arguments.
+     * @param newClassName     the new class name.
+     * @param newMethodName    the new method name.
+     */
     @Override
     public void processMethodMapping(String className, String methodReturnType, String methodName, String methodArguments, String newClassName, String newMethodName) {
         newClassName = mRawObfuscatedClassMap.get(className);
@@ -66,6 +105,13 @@ public class MappingCollector implements MappingProcessor {
 
     }
 
+    /**
+     * 获取原始类名
+     *
+     * @param proguardClassName
+     * @param defaultClassName
+     * @return
+     */
     public String originalClassName(String proguardClassName, String defaultClassName) {
         if (mObfuscatedRawClassMap.containsKey(proguardClassName)) {
             return mObfuscatedRawClassMap.get(proguardClassName);
@@ -74,6 +120,13 @@ public class MappingCollector implements MappingProcessor {
         }
     }
 
+    /**
+     * 获取混淆类名
+     *
+     * @param originalClassName
+     * @param defaultClassName
+     * @return
+     */
     public String proguardClassName(String originalClassName, String defaultClassName) {
         if (mRawObfuscatedClassMap.containsKey(originalClassName)) {
             return mRawObfuscatedClassMap.get(originalClassName);
@@ -82,6 +135,13 @@ public class MappingCollector implements MappingProcessor {
         }
     }
 
+    /**
+     * 获取混淆包名
+     *
+     * @param originalPackage
+     * @param defaultPackage
+     * @return
+     */
     public String proguardPackageName(String originalPackage, String defaultPackage) {
         if (mRawObfuscatedPackageMap.containsKey(originalPackage)) {
             return mRawObfuscatedPackageMap.get(originalPackage);
@@ -92,6 +152,7 @@ public class MappingCollector implements MappingProcessor {
 
     /**
      * get original method info
+     * 获取原始方法信息
      *
      * @param obfuscatedClassName
      * @param obfuscatedMethodName
@@ -127,7 +188,7 @@ public class MappingCollector implements MappingProcessor {
 
     /**
      * get obfuscated method info
-     *
+     *获取混淆方法信息
      * @param originalClassName
      * @param originalMethodName
      * @param originalMethodDesc

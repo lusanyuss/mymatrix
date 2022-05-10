@@ -1,37 +1,118 @@
+buildscript {
+    /**
+     * buildscript中的声明是gradle脚本自身需要使用的资源。
+     * 可以声明的资源包括依赖项、第三方插件、maven仓库地址等
+     */
+    ext {
+        KOTLIN_VERSION = "1.3.72"
+    }
+    repositories {
+        mavenLocal()
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
+        maven { url 'https://maven.aliyun.com/repository/central' }
+        maven {
+            url 'https://maven.aliyun.com/repository/public'
+        }
+        maven {
+            credentials {
+                username '626bdb89606fff01d45ef819'
+                password 'Z2-m6AzWbAg_'
+            }
+            url 'https://packages.aliyun.com/maven/repository/2223477-release-LFshLE/'
+        }
+        maven {
+            credentials {
+                username '626bdb89606fff01d45ef819'
+                password 'Z2-m6AzWbAg_'
+            }
+            url 'https://packages.aliyun.com/maven/repository/2223477-snapshot-w7PgoE/'
+        }
+    }
+
+    dependencies {
+        // classpath
+        classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
+    }
+}
+
+/**
+ * 而在build.gradle文件中直接声明的依赖项、
+ * 仓库地址等信息是项目自身需要的资源。
+ */
+
+repositories {
+    mavenLocal()
+    maven { url 'https://maven.aliyun.com/repository/google' }
+    maven { url 'https://maven.aliyun.com/repository/jcenter' }
+    maven { url 'https://maven.aliyun.com/repository/central' }
+    maven {
+        url 'https://maven.aliyun.com/repository/public'
+    }
+    maven {
+        credentials {
+            username '626bdb89606fff01d45ef819'
+            password 'Z2-m6AzWbAg_'
+        }
+        url 'https://packages.aliyun.com/maven/repository/2223477-release-LFshLE/'
+    }
+    maven {
+        credentials {
+            username '626bdb89606fff01d45ef819'
+            password 'Z2-m6AzWbAg_'
+        }
+        url 'https://packages.aliyun.com/maven/repository/2223477-snapshot-w7PgoE/'
+    }
+}
+
 apply plugin: 'java'
 apply plugin: 'kotlin'
+
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation gradleApi()
-//    implementation project(':matrix-commons')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${KOTLIN_VERSION}"
+    implementation 'commons-io:commons-io:2.6'
     implementation group: 'org.ow2.asm', name: 'asm', version: '7.0'
     implementation group: 'org.ow2.asm', name: 'asm-commons', version: '7.0'
     implementation 'com.android.tools.build:gradle:4.0.0'
-    implementation project(':matrix-android-lib')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:${KOTLIN_VERSION}"
 }
 sourceSets {
     main {
         java {
-            srcDir "../matrix-gradle-plugin/src/main/java"
+            srcDir "main/java"
         }
-
+        kotlin {
+            srcDir "main/kotlin"
+        }
         resources {
-            srcDir '../matrix-gradle-plugin/src/main/resources'
+            srcDir 'main/resources'
         }
     }
 }
 
-//version rootProject.ext.VERSION_NAME
-//group rootProject.ext.GROUP
-//
-//if("External" == rootProject.ext.PUBLISH_CHANNEL) {
-//    apply from: rootProject.file('gradle/java-publish.gradle')
-//}
-//else {
-//    apply from: rootProject.file('gradle/WeChatPublish.gradle')
-//    wechatPublish {
-//        artifactId = POM_ARTIFACT_ID
-//    }
-//}
+
+apply plugin: 'maven'
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: 'https://packages.aliyun.com/maven/repository/2223477-release-LFshLE/') {
+                authentication(
+                        userName: '626bdb89606fff01d45ef819',
+                        password: 'Z2-m6AzWbAg_'
+                )
+            }
+            snapshotRepository(url: 'https://packages.aliyun.com/maven/repository/2223477-snapshot-w7PgoE/') {
+                authentication(
+                        userName: '626bdb89606fff01d45ef819',
+                        password: 'Z2-m6AzWbAg_'
+                )
+            }
+            pom.version = "2.0.5.1"
+            pom.groupId = "com.tencent.matrix"
+            pom.artifactId = "matrix-gradle-plugin"
+        }
+    }
+}
