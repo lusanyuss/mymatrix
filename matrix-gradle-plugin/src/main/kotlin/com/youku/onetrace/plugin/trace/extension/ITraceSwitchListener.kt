@@ -1,5 +1,5 @@
-package com.youku.onetrace.trace.extension;
+package com.youku.onetrace.plugin.trace.extension
 
-public interface ITraceSwitchListener {
-    void onTraceEnabled(boolean enable);
+interface ITraceSwitchListener {
+    fun onTraceEnabled(enable: Boolean)
 }

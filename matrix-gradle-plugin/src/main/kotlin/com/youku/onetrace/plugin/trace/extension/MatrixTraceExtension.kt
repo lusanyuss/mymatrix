@@ -1,40 +1,15 @@
-package com.youku.onetrace.trace.extension;
+package com.youku.onetrace.plugin.trace.extension
 
-public class MatrixTraceExtension {
-    boolean transformInjectionForced;
-    String baseMethodMapFile;
-    String blackListFile;
-    String customDexTransformName;
-    boolean skipCheckClass = true; // skip by default
-
-    boolean enable;
-
-//    public void setEnable(boolean enable) {
-//        this.enable = enable;
-//        onTraceEnabled(enable);
-//    }
-
-    public String getBaseMethodMapFile() {
-        return baseMethodMapFile;
-    }
-
-    public String getBlackListFile() {
-        return blackListFile;
-    }
-
-    public String getCustomDexTransformName() {
-        return customDexTransformName;
-    }
-
-    public boolean isTransformInjectionForced() {
-        return transformInjectionForced;
-    }
-
-    public boolean isEnable() {
-        return enable;
-    }
-
-    public boolean isSkipCheckClass() {
-        return skipCheckClass;
-    }
+class MatrixTraceExtension {
+    var isTransformInjectionForced = false
+    
+    //    public void setEnable(boolean enable) {
+    //        this.enable = enable;
+    //        onTraceEnabled(enable);
+    //    }
+    var baseMethodMapFile: String? = null
+    var blackListFile: String? = null
+    var customDexTransformName: String? = null
+    var isSkipCheckClass = true // skip by default
+    var isEnable = false
 }

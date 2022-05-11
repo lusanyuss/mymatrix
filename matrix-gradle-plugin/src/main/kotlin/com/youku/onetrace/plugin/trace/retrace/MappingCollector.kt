@@ -1,31 +1,24 @@
+package com.youku.onetrace.plugin.trace.retrace
 
+import com.youku.onetrace.javalib.util.Log
+import org.objectweb.asm.Type
 
-package com.youku.onetrace.trace.retrace;
-
-import com.youku.onetrace.javalib.util.Log;
-
-import org.objectweb.asm.Type;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
-public class MappingCollector implements MappingProcessor {
-    private final static String TAG = "MappingCollector";
-    private final static int DEFAULT_CAPACITY = 2000;
+class MappingCollector : MappingProcessor {
     //混淆类名->原始类名 映射
-    public HashMap<String, String> mObfuscatedRawClassMap = new HashMap<>(DEFAULT_CAPACITY);
+    var mObfuscatedRawClassMap = HashMap<String, String?>(DEFAULT_CAPACITY)
+    
     //原始类名->混淆类名 映射
-    public HashMap<String, String> mRawObfuscatedClassMap = new HashMap<>(DEFAULT_CAPACITY);
+    var mRawObfuscatedClassMap = HashMap<String, String?>(DEFAULT_CAPACITY)
+    
     //原始包->混淆包 映射
-    public HashMap<String, String> mRawObfuscatedPackageMap = new HashMap<>(DEFAULT_CAPACITY);
+    var mRawObfuscatedPackageMap = HashMap<String, String?>(DEFAULT_CAPACITY)
+    
     //混淆类名->方法映射
-    private final Map<String, Map<String, Set<MethodInfo>>> mObfuscatedClassMethodMap = new HashMap<>();
+    private val mObfuscatedClassMethodMap: MutableMap<String?, MutableMap<String, MutableSet<MethodInfo>>> = HashMap()
+    
     //原始类方法映射
-    private final Map<String, Map<String, Set<MethodInfo>>> mOriginalClassMethodMap = new HashMap<>();
-
+    private val mOriginalClassMethodMap: MutableMap<String?, MutableMap<String, MutableSet<MethodInfo>>?> = HashMap()
+    
     /**
      * 主要是保存映射关系
      *
@@ -33,20 +26,19 @@ public class MappingCollector implements MappingProcessor {
      * @param newClassName the new class name.
      * @return
      */
-    @Override
-    public boolean processClassMapping(String className, String newClassName) {
-        this.mObfuscatedRawClassMap.put(newClassName, className);
-        this.mRawObfuscatedClassMap.put(className, newClassName);
-        int classNameLen = className.lastIndexOf('.');
-        int newClassNameLen = newClassName.lastIndexOf('.');
-        if (classNameLen > 0 && newClassNameLen > 0) {
-            this.mRawObfuscatedPackageMap.put(className.substring(0, classNameLen), newClassName.substring(0, newClassNameLen));
+    override fun processClassMapping(className: String, newClassName: String): Boolean {
+        mObfuscatedRawClassMap[newClassName] = className
+        mRawObfuscatedClassMap[className] = newClassName
+        val classNameLen = className.lastIndexOf('.')
+        val newClassNameLen = newClassName.lastIndexOf('.')
+        if(classNameLen > 0 && newClassNameLen > 0) {
+            mRawObfuscatedPackageMap[className.substring(0, classNameLen)] = newClassName.substring(0, newClassNameLen)
         } else {
-            Log.e(TAG, "class without package name: %s -> %s, pls check input mapping", className, newClassName);
+            Log.e(TAG, "class without package name: %s -> %s, pls check input mapping", className, newClassName)
         }
-        return true;
+        return true
     }
-
+    
     /**
      * 保存  混淆类->混淆方法->混淆方法
      * 和   类->方法->方法 信息映射关系
@@ -58,36 +50,33 @@ public class MappingCollector implements MappingProcessor {
      * @param newClassName     the new class name.
      * @param newMethodName    the new method name.
      */
-    @Override
-    public void processMethodMapping(String className, String methodReturnType, String methodName, String methodArguments, String newClassName, String newMethodName) {
-        newClassName = mRawObfuscatedClassMap.get(className);
-        Map<String, Set<MethodInfo>> methodMap = mObfuscatedClassMethodMap.get(newClassName);
-        if (methodMap == null) {
-            methodMap = new HashMap<>();
-            mObfuscatedClassMethodMap.put(newClassName, methodMap);
+    override fun processMethodMapping(className: String, methodReturnType: String?, methodName: String, methodArguments: String, newClassName: String?, newMethodName: String) {
+        var newClassName = newClassName
+        newClassName = mRawObfuscatedClassMap[className]
+        var methodMap = mObfuscatedClassMethodMap[newClassName]
+        if(methodMap == null) {
+            methodMap = HashMap()
+            mObfuscatedClassMethodMap[newClassName] = methodMap
         }
-        Set<MethodInfo> methodSet = methodMap.get(newMethodName);
-        if (methodSet == null) {
-            methodSet = new LinkedHashSet<>();
-            methodMap.put(newMethodName, methodSet);
+        var methodSet = methodMap[newMethodName]
+        if(methodSet == null) {
+            methodSet = LinkedHashSet()
+            methodMap[newMethodName] = methodSet
         }
-        methodSet.add(new MethodInfo(className, methodReturnType, methodName, methodArguments));
-
-
-        Map<String, Set<MethodInfo>> methodMap2 = mOriginalClassMethodMap.get(className);
-        if (methodMap2 == null) {
-            methodMap2 = new HashMap<>();
-            mOriginalClassMethodMap.put(className, methodMap2);
+        methodSet.add(MethodInfo(className, methodReturnType, methodName, methodArguments))
+        var methodMap2 = mOriginalClassMethodMap[className]
+        if(methodMap2 == null) {
+            methodMap2 = HashMap()
+            mOriginalClassMethodMap[className] = methodMap2
         }
-        Set<MethodInfo> methodSet2 = methodMap2.get(methodName);
-        if (methodSet2 == null) {
-            methodSet2 = new LinkedHashSet<>();
-            methodMap2.put(methodName, methodSet2);
+        var methodSet2 = methodMap2[methodName]
+        if(methodSet2 == null) {
+            methodSet2 = LinkedHashSet()
+            methodMap2[methodName] = methodSet2
         }
-        methodSet2.add(new MethodInfo(newClassName, methodReturnType, newMethodName, methodArguments));
-
+        methodSet2.add(MethodInfo(newClassName, methodReturnType, newMethodName, methodArguments))
     }
-
+    
     /**
      * 获取原始类名
      *
@@ -95,14 +84,14 @@ public class MappingCollector implements MappingProcessor {
      * @param defaultClassName
      * @return
      */
-    public String originalClassName(String proguardClassName, String defaultClassName) {
-        if (mObfuscatedRawClassMap.containsKey(proguardClassName)) {
-            return mObfuscatedRawClassMap.get(proguardClassName);
+    fun originalClassName(proguardClassName: String?, defaultClassName: String?): String? {
+        return if(mObfuscatedRawClassMap.containsKey(proguardClassName)) {
+            mObfuscatedRawClassMap[proguardClassName]
         } else {
-            return defaultClassName;
+            defaultClassName
         }
     }
-
+    
     /**
      * 获取混淆类名
      *
@@ -110,14 +99,14 @@ public class MappingCollector implements MappingProcessor {
      * @param defaultClassName
      * @return
      */
-    public String proguardClassName(String originalClassName, String defaultClassName) {
-        if (mRawObfuscatedClassMap.containsKey(originalClassName)) {
-            return mRawObfuscatedClassMap.get(originalClassName);
+    fun proguardClassName(originalClassName: String?, defaultClassName: String?): String? {
+        return if(mRawObfuscatedClassMap.containsKey(originalClassName)) {
+            mRawObfuscatedClassMap[originalClassName]
         } else {
-            return defaultClassName;
+            defaultClassName
         }
     }
-
+    
     /**
      * 获取混淆包名
      *
@@ -125,14 +114,14 @@ public class MappingCollector implements MappingProcessor {
      * @param defaultPackage
      * @return
      */
-    public String proguardPackageName(String originalPackage, String defaultPackage) {
-        if (mRawObfuscatedPackageMap.containsKey(originalPackage)) {
-            return mRawObfuscatedPackageMap.get(originalPackage);
+    fun proguardPackageName(originalPackage: String?, defaultPackage: String?): String? {
+        return if(mRawObfuscatedPackageMap.containsKey(originalPackage)) {
+            mRawObfuscatedPackageMap[originalPackage]
         } else {
-            return defaultPackage;
+            defaultPackage
         }
     }
-
+    
     /**
      * get original method info
      * 获取原始方法信息
@@ -142,93 +131,90 @@ public class MappingCollector implements MappingProcessor {
      * @param obfuscatedMethodDesc
      * @return
      */
-    public MethodInfo originalMethodInfo(String obfuscatedClassName, String obfuscatedMethodName, String obfuscatedMethodDesc) {
-        DescInfo descInfo = parseMethodDesc(obfuscatedMethodDesc, false);
-
+    fun originalMethodInfo(obfuscatedClassName: String?, obfuscatedMethodName: String?, obfuscatedMethodDesc: String?): MethodInfo {
+        val descInfo = parseMethodDesc(obfuscatedMethodDesc, false)
+        
         // obfuscated name -> original method names.
-        Map<String, Set<MethodInfo>> methodMap = mObfuscatedClassMethodMap.get(obfuscatedClassName);
-        if (methodMap != null) {
-            Set<MethodInfo> methodSet = methodMap.get(obfuscatedMethodName);
-            if (methodSet != null) {
-                // Find all matching methods.
-                Iterator<MethodInfo> methodInfoIterator = methodSet.iterator();
+        val methodMap: MutableMap<String, MutableSet<MethodInfo>>? = mObfuscatedClassMethodMap[obfuscatedClassName]
+        if(methodMap != null) {
+            val methodSet: Set<MethodInfo>? = methodMap[obfuscatedMethodName]
+            if(methodSet != null) { // Find all matching methods.
+                val methodInfoIterator = methodSet.iterator()
                 while (methodInfoIterator.hasNext()) {
-                    MethodInfo methodInfo = methodInfoIterator.next();
-                    if (methodInfo.matches(descInfo.returnType, descInfo.arguments)) {
-                        MethodInfo newMethodInfo = new MethodInfo(methodInfo);
-                        newMethodInfo.setDesc(descInfo.desc);
-                        return newMethodInfo;
+                    val methodInfo = methodInfoIterator.next()
+                    if(methodInfo.matches(descInfo.mReturnType, descInfo.mArguments)) {
+                        val newMethodInfo = MethodInfo(methodInfo)
+                        newMethodInfo.desc=descInfo.mDesc
+                        return newMethodInfo
                     }
                 }
             }
         }
-
-        MethodInfo defaultMethodInfo = MethodInfo.deFault();
-        defaultMethodInfo.setDesc(descInfo.desc);
-        defaultMethodInfo.setOriginalName(obfuscatedMethodName);
-        return defaultMethodInfo;
+        val defaultMethodInfo: MethodInfo = MethodInfo.Companion.deFault()
+        defaultMethodInfo.desc=descInfo.mDesc
+        defaultMethodInfo.originalName=(obfuscatedMethodName)
+        return defaultMethodInfo
     }
-
+    
     /**
      * get obfuscated method info
-     *获取混淆方法信息
+     * 获取混淆方法信息
      * @param originalClassName
      * @param originalMethodName
      * @param originalMethodDesc
      * @return
      */
-    public MethodInfo obfuscatedMethodInfo(String originalClassName, String originalMethodName, String originalMethodDesc) {
-        DescInfo descInfo = parseMethodDesc(originalMethodDesc, true);
-
+    fun obfuscatedMethodInfo(originalClassName: String?, originalMethodName: String?, originalMethodDesc: String?): MethodInfo {
+        val descInfo = parseMethodDesc(originalMethodDesc, true)
+        
         // Class name -> obfuscated method names.
-        Map<String, Set<MethodInfo>> methodMap = mOriginalClassMethodMap.get(originalClassName);
-        if (methodMap != null) {
-            Set<MethodInfo> methodSet = methodMap.get(originalMethodName);
-            if (null != methodSet) {
-                // Find all matching methods.
-                Iterator<MethodInfo> methodInfoIterator = methodSet.iterator();
+        val methodMap: MutableMap<String, MutableSet<MethodInfo>>? = mOriginalClassMethodMap.get(originalClassName)
+        if(methodMap != null) {
+            val methodSet = methodMap[originalMethodName]
+            if(null != methodSet) { // Find all matching methods.
+                val methodInfoIterator = methodSet.iterator()
                 while (methodInfoIterator.hasNext()) {
-                    MethodInfo methodInfo = methodInfoIterator.next();
-                    MethodInfo newMethodInfo = new MethodInfo(methodInfo);
-                    obfuscatedMethodInfo(newMethodInfo);
-                    if (newMethodInfo.matches(descInfo.returnType, descInfo.arguments)) {
-                        newMethodInfo.setDesc(descInfo.desc);
-                        return newMethodInfo;
+                    val methodInfo = methodInfoIterator.next()
+                    val newMethodInfo = MethodInfo(methodInfo)
+                    obfuscatedMethodInfo(newMethodInfo)
+                    if(newMethodInfo.matches(descInfo.mReturnType, descInfo.mArguments)) {
+                        newMethodInfo.desc=descInfo.mDesc
+                        return newMethodInfo
                     }
                 }
             }
         }
-        MethodInfo defaultMethodInfo = MethodInfo.deFault();
-        defaultMethodInfo.setDesc(descInfo.desc);
-        defaultMethodInfo.setOriginalName(originalMethodName);
-        return defaultMethodInfo;
+        val defaultMethodInfo: MethodInfo = MethodInfo.Companion.deFault()
+        defaultMethodInfo.desc=descInfo.mDesc
+        defaultMethodInfo.originalName=(originalMethodName)
+        return defaultMethodInfo
     }
-
-    private void obfuscatedMethodInfo(MethodInfo methodInfo) {
-        String methodArguments = methodInfo.getOriginalArguments();
-        String[] args = methodArguments.split(",");
-        StringBuffer stringBuffer = new StringBuffer();
-        for (String str : args) {
-            String key = str.replace("[", "").replace("]", "");
-            if (mRawObfuscatedClassMap.containsKey(key)) {
-                stringBuffer.append(str.replace(key, mRawObfuscatedClassMap.get(key)));
+    
+    private fun obfuscatedMethodInfo(methodInfo: MethodInfo) {
+        val methodArguments = methodInfo.originalArguments
+        val args = methodArguments!!.split(",").toTypedArray()
+        val stringBuffer = StringBuffer()
+        for (str in args) {
+            val key = str.replace("[", "").replace("]", "")
+            if(mRawObfuscatedClassMap.containsKey(key)) {
+                stringBuffer.append(str.replace(key, mRawObfuscatedClassMap[key]!!,false))
             } else {
-                stringBuffer.append(str);
+                stringBuffer.append(str)
             }
-            stringBuffer.append(',');
+            stringBuffer.append(',')
         }
-        if (stringBuffer.length() > 0) {
-            stringBuffer.deleteCharAt(stringBuffer.length() - 1);
+        if(stringBuffer.length > 0) {
+            stringBuffer.deleteCharAt(stringBuffer.length - 1)
         }
-        String methodReturnType = methodInfo.getOriginalType();
-        String key = methodReturnType.replace("[", "").replace("]", "");
-        if (mRawObfuscatedClassMap.containsKey(key)) {
-            methodReturnType = methodReturnType.replace(key, mRawObfuscatedClassMap.get(key));
+        var methodReturnType = methodInfo.originalType
+        val key = methodReturnType!!.replace("[", "").replace("]", "")
+        if(mRawObfuscatedClassMap.containsKey(key)) {
+            methodReturnType = methodReturnType.replace(key, mRawObfuscatedClassMap[key]!!,false)
         }
-        methodInfo.setOriginalArguments(stringBuffer.toString());
-        methodInfo.setOriginalType(methodReturnType);
+        methodInfo.originalArguments=(stringBuffer.toString())
+        methodInfo.originalType=(methodReturnType)
     }
-
+    
     /**
      * parse method desc
      *
@@ -236,90 +222,92 @@ public class MappingCollector implements MappingProcessor {
      * @param isRawToObfuscated
      * @return
      */
-    private DescInfo parseMethodDesc(String desc, boolean isRawToObfuscated) {
-        DescInfo descInfo = new DescInfo();
-        Type[] argsObj = Type.getArgumentTypes(desc);
-        StringBuffer argumentsBuffer = new StringBuffer();
-        StringBuffer descBuffer = new StringBuffer();
-        descBuffer.append('(');
-        for (Type type : argsObj) {
-            String key = type.getClassName().replace("[", "").replace("]", "");
-            if (isRawToObfuscated) {
-                if (mRawObfuscatedClassMap.containsKey(key)) {
-                    argumentsBuffer.append(type.getClassName().replace(key, mRawObfuscatedClassMap.get(key)));
-                    descBuffer.append(type.toString().replace(key, mRawObfuscatedClassMap.get(key)));
+    private fun parseMethodDesc(desc: String?, isRawToObfuscated: Boolean): DescInfo {
+        val descInfo = DescInfo()
+        val argsObj = Type.getArgumentTypes(desc)
+        val argumentsBuffer = StringBuffer()
+        val descBuffer = StringBuffer()
+        descBuffer.append('(')
+        for (type in argsObj) {
+            val key = type.className.replace("[", "").replace("]", "")
+            if(isRawToObfuscated) {
+                if(mRawObfuscatedClassMap.containsKey(key)) {
+                    argumentsBuffer.append(type.className.replace(key, mRawObfuscatedClassMap[key]!!,false))
+                    descBuffer.append(type.toString().replace(key, mRawObfuscatedClassMap[key]!!,false))
                 } else {
-                    argumentsBuffer.append(type.getClassName());
-                    descBuffer.append(type.toString());
+                    argumentsBuffer.append(type.className)
+                    descBuffer.append(type.toString())
                 }
             } else {
-                if (mObfuscatedRawClassMap.containsKey(key)) {
-                    argumentsBuffer.append(type.getClassName().replace(key, mObfuscatedRawClassMap.get(key)));
-                    descBuffer.append(type.toString().replace(key, mObfuscatedRawClassMap.get(key)));
+                if(mObfuscatedRawClassMap.containsKey(key)) {
+                    argumentsBuffer.append(type.className.replace(key, mObfuscatedRawClassMap[key]!!,false))
+                    descBuffer.append(type.toString().replace(key, mObfuscatedRawClassMap[key]!!,false))
                 } else {
-                    argumentsBuffer.append(type.getClassName());
-                    descBuffer.append(type.toString());
+                    argumentsBuffer.append(type.className)
+                    descBuffer.append(type.toString())
                 }
             }
-            argumentsBuffer.append(',');
+            argumentsBuffer.append(',')
         }
-        descBuffer.append(')');
-
-        Type returnObj;
-        try {
-            returnObj = Type.getReturnType(desc);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            returnObj = Type.getReturnType(desc + ";");
+        descBuffer.append(')')
+        val returnObj: Type
+        returnObj = try {
+            Type.getReturnType(desc)
+        } catch (e: ArrayIndexOutOfBoundsException) {
+            Type.getReturnType("$desc;")
         }
-        if (isRawToObfuscated) {
-            String key = returnObj.getClassName().replace("[", "").replace("]", "");
-            if (mRawObfuscatedClassMap.containsKey(key)) {
-                descInfo.setReturnType(returnObj.getClassName().replace(key, mRawObfuscatedClassMap.get(key)));
-                descBuffer.append(returnObj.toString().replace(key, mRawObfuscatedClassMap.get(key)));
+        if(isRawToObfuscated) {
+            val key = returnObj.className.replace("[", "").replace("]", "")
+            if(mRawObfuscatedClassMap.containsKey(key)) {
+                descInfo.setReturnType(returnObj.className.replace(key, mRawObfuscatedClassMap[key]!!,false))
+                descBuffer.append(returnObj.toString().replace(key, mRawObfuscatedClassMap[key]!!,false))
             } else {
-                descInfo.setReturnType(returnObj.getClassName());
-                descBuffer.append(returnObj.toString());
+                descInfo.setReturnType(returnObj.className)
+                descBuffer.append(returnObj.toString())
             }
         } else {
-            String key = returnObj.getClassName().replace("[", "").replace("]", "");
-            if (mObfuscatedRawClassMap.containsKey(key)) {
-                descInfo.setReturnType(returnObj.getClassName().replace(key, mObfuscatedRawClassMap.get(key)));
-                descBuffer.append(returnObj.toString().replace(key, mObfuscatedRawClassMap.get(key)));
+            val key = returnObj.className.replace("[", "").replace("]", "")
+            if(mObfuscatedRawClassMap.containsKey(key)) {
+                descInfo.setReturnType(returnObj.className.replace(key, mObfuscatedRawClassMap[key]!!,false))
+                descBuffer.append(returnObj.toString().replace(key, mObfuscatedRawClassMap[key]!!,false))
             } else {
-                descInfo.setReturnType(returnObj.getClassName());
-                descBuffer.append(returnObj.toString());
+                descInfo.setReturnType(returnObj.className)
+                descBuffer.append(returnObj.toString())
             }
         }
-
+        
         // delete last ,
-        if (argumentsBuffer.length() > 0) {
-            argumentsBuffer.deleteCharAt(argumentsBuffer.length() - 1);
+        if(argumentsBuffer.length > 0) {
+            argumentsBuffer.deleteCharAt(argumentsBuffer.length - 1)
         }
-        descInfo.setArguments(argumentsBuffer.toString());
-
-        descInfo.setDesc(descBuffer.toString());
-        return descInfo;
+        descInfo.setArguments(argumentsBuffer.toString())
+        descInfo.mDesc=(descBuffer.toString())
+        return descInfo
     }
-
+    
     /**
      * about method desc info
      */
-    private static class DescInfo {
-        private String desc;
-        private String arguments;
-        private String returnType;
-
-        public void setArguments(String arguments) {
-            this.arguments = arguments;
+    private class DescInfo {
+        var mDesc: String? = null
+        var mArguments: String? = null
+        var mReturnType: String? = null
+        
+        fun setArguments(arguments: String?) {
+            this.mArguments = arguments
         }
-
-        public void setReturnType(String returnType) {
-            this.returnType = returnType;
+        
+        fun setReturnType(returnType: String?) {
+            this.mReturnType = returnType
         }
-
-        public void setDesc(String desc) {
-            this.desc = desc;
+        
+        fun setDesc(desc: String?) {
+            this.mDesc = desc
         }
     }
-
+    
+    companion object {
+        private const val TAG = "MappingCollector"
+        private const val DEFAULT_CAPACITY = 2000
+    }
 }

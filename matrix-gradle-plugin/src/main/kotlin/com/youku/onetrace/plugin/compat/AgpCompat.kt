@@ -1,5 +1,3 @@
-
-
 package com.youku.onetrace.plugin.compat
 
 import com.android.build.gradle.api.BaseVariant
@@ -8,7 +6,7 @@ import com.android.builder.model.SigningConfig
 import org.objectweb.asm.Opcodes
 
 class AgpCompat {
-
+    
     companion object {
         @JvmField
         val getIntermediatesSymbolDirName = {
@@ -18,11 +16,11 @@ class AgpCompat {
                 else -> "symbols"
             }
         }
-
+        
         fun getSigningConfig(variant: BaseVariant): SigningConfig? {
             return (variant.buildType as ReadOnlyBuildType).signingConfig
         }
-
+        
         @JvmStatic
         val asmApi: Int
             get() = when {
@@ -30,5 +28,5 @@ class AgpCompat {
                 else -> Opcodes.ASM5
             }
     }
-
+    
 }

@@ -1,5 +1,3 @@
-
-
 package com.youku.onetrace.plugin.extension
 
 /**
@@ -7,12 +5,9 @@ package com.youku.onetrace.plugin.extension
  */
 
 open class MatrixExtension(
-        var clientVersion: String = "",
-        var uuid: String = "",
-        var output: String = "",
-        var logLevel: String = "I"
+    var clientVersion: String = "", var uuid: String = "", var output: String = "", var logLevel: String = "I"
 ) {
-
+    
     override fun toString(): String {
         return """| log vevel = $logLevel
 //                  | uuid = $uuid

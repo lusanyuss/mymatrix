@@ -1,5 +1,3 @@
-
-
 package com.youku.onetrace.plugin.task
 
 import com.android.build.gradle.AppExtension
@@ -8,7 +6,7 @@ import com.youku.onetrace.javalib.util.Util
 import com.youku.onetrace.plugin.compat.CreationConfig
 import com.youku.onetrace.plugin.compat.MatrixTraceCompat
 import com.youku.onetrace.plugin.extension.MatrixRemoveUnusedResExtension
-import com.youku.onetrace.trace.extension.MatrixTraceExtension
+import com.youku.onetrace.plugin.trace.extension.MatrixTraceExtension
 import org.gradle.api.Project
 
 class MatrixTasksManager {

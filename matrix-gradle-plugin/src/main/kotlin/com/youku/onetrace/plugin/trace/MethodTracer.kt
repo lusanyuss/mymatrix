@@ -1,395 +1,321 @@
+package com.youku.onetrace.plugin.trace
 
+import com.youku.onetrace.javalib.util.FileUtil
+import com.youku.onetrace.javalib.util.Log
+import com.youku.onetrace.javalib.util.Util
+import com.youku.onetrace.plugin.compat.AgpCompat.Companion.asmApi
+import com.youku.onetrace.plugin.trace.item.TraceMethod
+import com.youku.onetrace.plugin.trace.retrace.MappingCollector
+import org.objectweb.asm.*
+import org.objectweb.asm.commons.AdviceAdapter
+import org.objectweb.asm.util.CheckClassAdapter
+import java.io.*
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.zip.ZipEntry
+import java.util.zip.ZipException
+import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
 
-package com.youku.onetrace.trace;
-
-import com.youku.onetrace.javalib.util.FileUtil;
-import com.youku.onetrace.javalib.util.Log;
-import com.youku.onetrace.javalib.util.Util;
-import com.youku.onetrace.plugin.compat.AgpCompat;
-import com.youku.onetrace.trace.item.TraceMethod;
-import com.youku.onetrace.trace.retrace.MappingCollector;
-
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.commons.AdviceAdapter;
-import org.objectweb.asm.util.CheckClassAdapter;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
 
 /**
- * <p>
+ *
+ *
  * This class hooks all collected methods in oder to trace method in/out.
- * </p>
+ *
  */
-
-public class MethodTracer {
-
-    private static final String TAG = "Matrix.MethodTracer";
-    private static AtomicInteger traceMethodCount = new AtomicInteger();
-    private final Configuration configuration;
-    private final ConcurrentHashMap<String, TraceMethod> collectedMethodMap;
-    private final ConcurrentHashMap<String, String> collectedClassExtendMap;
-    private final ExecutorService executor;
-    private MappingCollector mappingCollector;
-
-    private volatile boolean traceError = false;
-
-    public MethodTracer(ExecutorService executor, MappingCollector mappingCollector, Configuration config, ConcurrentHashMap<String, TraceMethod> collectedMap, ConcurrentHashMap<String, String> collectedClassExtendMap) {
-        this.configuration = config;
-        this.mappingCollector = mappingCollector;
-        this.executor = executor;
-        this.collectedClassExtendMap = collectedClassExtendMap;
-        this.collectedMethodMap = collectedMap;
-    }
-
-    public void trace(Map<File, File> srcFolderList, Map<File, File> dependencyJarList, ClassLoader classLoader, boolean ignoreCheckClass) throws ExecutionException, InterruptedException {
-        List<Future> futures = new LinkedList<>();
-        traceMethodFromSrc(srcFolderList, futures, classLoader, ignoreCheckClass);
-        traceMethodFromJar(dependencyJarList, futures, classLoader, ignoreCheckClass);
-        for (Future future : futures) {
-            future.get();
+class MethodTracer(
+    private val executor: ExecutorService,
+    private val mappingCollector: MappingCollector,
+    private val configuration: Configuration,
+    private val collectedMethodMap: ConcurrentHashMap<String?, TraceMethod?>,
+    private val collectedClassExtendMap: ConcurrentHashMap<String?, String?>
+) {
+    @Volatile
+    private var traceError = false
+    
+    @kotlin.jvm.Throws(ExecutionException::class, InterruptedException::class)
+    fun trace(srcFolderList: Map<File, File>?, dependencyJarList: Map<File, File>?, classLoader: ClassLoader, ignoreCheckClass: Boolean) {
+        val futures: MutableList<Future<*>> = LinkedList()
+        traceMethodFromSrc(srcFolderList, futures, classLoader, ignoreCheckClass)
+        traceMethodFromJar(dependencyJarList, futures, classLoader, ignoreCheckClass)
+        for (future in futures) {
+            future.get()
         }
-        if (traceError) {
-            throw new IllegalArgumentException("something wrong with trace, see detail log before");
-        }
-        futures.clear();
+        require(!traceError) { "something wrong with trace, see detail log before" }
+        futures.clear()
     }
-
-    private void traceMethodFromSrc(Map<File, File> srcMap, List<Future> futures, final ClassLoader classLoader, final boolean skipCheckClass) {
-        if (null != srcMap) {
-            for (Map.Entry<File, File> entry : srcMap.entrySet()) {
-                futures.add(executor.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        innerTraceMethodFromSrc(entry.getKey(), entry.getValue(), classLoader, skipCheckClass);
-                    }
-                }));
+    
+    private fun traceMethodFromSrc(srcMap: Map<File, File>?, futures: MutableList<Future<*>>, classLoader: ClassLoader, skipCheckClass: Boolean) {
+        if(null != srcMap) {
+            for ((key, value) in srcMap) {
+                futures.add(executor.submit { innerTraceMethodFromSrc(key, value, classLoader, skipCheckClass) })
             }
         }
     }
-
-    private void traceMethodFromJar(Map<File, File> dependencyMap, List<Future> futures, final ClassLoader classLoader, final boolean skipCheckClass) {
-        if (null != dependencyMap) {
-            for (Map.Entry<File, File> entry : dependencyMap.entrySet()) {
-                futures.add(executor.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        innerTraceMethodFromJar(entry.getKey(), entry.getValue(), classLoader, skipCheckClass);
-                    }
-                }));
+    
+    private fun traceMethodFromJar(dependencyMap: Map<File, File>?, futures: MutableList<Future<*>>, classLoader: ClassLoader, skipCheckClass: Boolean) {
+        if(null != dependencyMap) {
+            for ((key, value) in dependencyMap) {
+                futures.add(executor.submit { innerTraceMethodFromJar(key, value, classLoader, skipCheckClass) })
             }
         }
     }
-
-    private void innerTraceMethodFromSrc(File input, File output, ClassLoader classLoader, boolean ignoreCheckClass) {
-
-        ArrayList<File> classFileList = new ArrayList<>();
-        if (input.isDirectory()) {
-            listClassFiles(classFileList, input);
+    
+    private fun innerTraceMethodFromSrc(input: File, output: File, classLoader: ClassLoader, ignoreCheckClass: Boolean) {
+        val classFileList = ArrayList<File>()
+        if(input.isDirectory) {
+            listClassFiles(classFileList, input)
         } else {
-            classFileList.add(input);
+            classFileList.add(input)
         }
-
-        for (File classFile : classFileList) {
-            InputStream is = null;
-            FileOutputStream os = null;
+        for (classFile in classFileList) {
+            var `is`: InputStream? = null
+            var os: FileOutputStream? = null
             try {
-                final String changedFileInputFullPath = classFile.getAbsolutePath();
-                final File changedFileOutput = new File(changedFileInputFullPath.replace(input.getAbsolutePath(), output.getAbsolutePath()));
-
-                if (changedFileOutput.getCanonicalPath().equals(classFile.getCanonicalPath())) {
-                    throw new RuntimeException("Input file(" + classFile.getCanonicalPath() + ") should not be same with output!");
+                val changedFileInputFullPath = classFile.absolutePath
+                val changedFileOutput = File(changedFileInputFullPath.replace(input.absolutePath, output.absolutePath))
+                if(changedFileOutput.canonicalPath == classFile.canonicalPath) {
+                    throw RuntimeException("Input file(" + classFile.canonicalPath + ") should not be same with output!")
                 }
-
-                if (!changedFileOutput.exists()) {
-                    changedFileOutput.getParentFile().mkdirs();
+                if(!changedFileOutput.exists()) {
+                    changedFileOutput.parentFile.mkdirs()
                 }
-                changedFileOutput.createNewFile();
-
-                if (MethodCollector.isNeedTraceFile(classFile.getName())) {
-
-                    is = new FileInputStream(classFile);
-                    ClassReader classReader = new ClassReader(is);
-                    ClassWriter classWriter = new TraceClassWriter(ClassWriter.COMPUTE_FRAMES, classLoader);
-                    ClassVisitor classVisitor = new TraceClassAdapter(AgpCompat.getAsmApi(), classWriter);
-                    classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
-                    is.close();
-
-                    byte[] data = classWriter.toByteArray();
-
-                    if (!ignoreCheckClass) {
+                changedFileOutput.createNewFile()
+                if(MethodCollector.Companion.isNeedTraceFile(classFile.name)) {
+                    `is` = FileInputStream(classFile)
+                    val classReader = ClassReader(`is`)
+                    val classWriter: ClassWriter = TraceClassWriter(ClassWriter.COMPUTE_FRAMES, classLoader)
+                    val classVisitor: ClassVisitor = TraceClassAdapter(asmApi, classWriter)
+                    classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES)
+                    `is`.close()
+                    val data = classWriter.toByteArray()
+                    if(!ignoreCheckClass) {
                         try {
-                            ClassReader cr = new ClassReader(data);
-                            ClassWriter cw = new ClassWriter(0);
-                            ClassVisitor check = new CheckClassAdapter(cw);
-                            cr.accept(check, ClassReader.EXPAND_FRAMES);
-                        } catch (Throwable e) {
-                            System.err.println("trace output ERROR : " + e.getMessage() + ", " + classFile);
-                            traceError = true;
+                            val cr = ClassReader(data)
+                            val cw = ClassWriter(0)
+                            val check: ClassVisitor = CheckClassAdapter(cw)
+                            cr.accept(check, ClassReader.EXPAND_FRAMES)
+                        } catch (e: Throwable) {
+                            System.err.println("trace output ERROR : " + e.message + ", " + classFile)
+                            traceError = true
                         }
                     }
-
-                    if (output.isDirectory()) {
-                        os = new FileOutputStream(changedFileOutput);
+                    os = if(output.isDirectory) {
+                        FileOutputStream(changedFileOutput)
                     } else {
-                        os = new FileOutputStream(output);
+                        FileOutputStream(output)
                     }
-                    os.write(data);
-                    os.close();
+                    os.write(data)
+                    os.close()
                 } else {
-                    FileUtil.copyFileUsingStream(classFile, changedFileOutput);
+                    FileUtil.copyFileUsingStream(classFile, changedFileOutput)
                 }
-            } catch (Exception e) {
-                Log.e(TAG, "[innerTraceMethodFromSrc] input:%s e:%s", input.getName(), e.getMessage());
+            } catch (e: Exception) {
+                Log.e(TAG, "[innerTraceMethodFromSrc] input:%s e:%s", input.name, e.message)
                 try {
-                    Files.copy(input.toPath(), output.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                } catch (Exception e1) {
-                    e1.printStackTrace();
+                    Files.copy(input.toPath(), output.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                } catch (e1: Exception) {
+                    e1.printStackTrace()
                 }
             } finally {
                 try {
-                    is.close();
-                    os.close();
-                } catch (Exception e) {
-                    // ignore
+                    `is`!!.close()
+                    os!!.close()
+                } catch (e: Exception) { // ignore
                 }
             }
         }
     }
-
-    private void innerTraceMethodFromJar(File input, File output, final ClassLoader classLoader, boolean skipCheckClass) {
-        ZipOutputStream zipOutputStream = null;
-        ZipFile zipFile = null;
+    
+    private fun innerTraceMethodFromJar(input: File, output: File, classLoader: ClassLoader, skipCheckClass: Boolean) {
+        var zipOutputStream: ZipOutputStream? = null
+        var zipFile: ZipFile? = null
         try {
-            zipOutputStream = new ZipOutputStream(new FileOutputStream(output));
-            zipFile = new ZipFile(input);
-            Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
+            zipOutputStream = ZipOutputStream(FileOutputStream(output))
+            zipFile = ZipFile(input)
+            val enumeration = zipFile.entries()
             while (enumeration.hasMoreElements()) {
-                ZipEntry zipEntry = enumeration.nextElement();
-                String zipEntryName = zipEntry.getName();
-
-                if (Util.preventZipSlip(output, zipEntryName)) {
-                    Log.e(TAG, "Unzip entry %s failed!", zipEntryName);
-                    continue;
+                val zipEntry = enumeration.nextElement()
+                val zipEntryName = zipEntry.name
+                if(Util.preventZipSlip(output, zipEntryName)) {
+                    Log.e(TAG, "Unzip entry %s failed!", zipEntryName)
+                    continue
                 }
-
-                if (MethodCollector.isNeedTraceFile(zipEntryName)) {
-
-                    InputStream inputStream = zipFile.getInputStream(zipEntry);
-                    ClassReader classReader = new ClassReader(inputStream);
-                    ClassWriter classWriter = new TraceClassWriter(ClassWriter.COMPUTE_FRAMES, classLoader);
-                    ClassVisitor classVisitor = new TraceClassAdapter(AgpCompat.getAsmApi(), classWriter);
-                    classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
-                    byte[] data = classWriter.toByteArray();
-                    //
-                    if (!skipCheckClass) {
+                if(MethodCollector.Companion.isNeedTraceFile(zipEntryName)) {
+                    val inputStream = zipFile.getInputStream(zipEntry)
+                    val classReader = ClassReader(inputStream)
+                    val classWriter: ClassWriter = TraceClassWriter(ClassWriter.COMPUTE_FRAMES, classLoader)
+                    val classVisitor: ClassVisitor = TraceClassAdapter(asmApi, classWriter)
+                    classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES)
+                    val data = classWriter.toByteArray() //
+                    if(!skipCheckClass) {
                         try {
-                            ClassReader r = new ClassReader(data);
-                            ClassWriter w = new ClassWriter(0);
-                            ClassVisitor v = new CheckClassAdapter(w);
-                            r.accept(v, ClassReader.EXPAND_FRAMES);
-                        } catch (Throwable e) {
-                            System.err.println("trace jar output ERROR: " + e.getMessage() + ", " + zipEntryName);
-                            //                        e.printStackTrace();
-                            traceError = true;
+                            val r = ClassReader(data)
+                            val w = ClassWriter(0)
+                            val v: ClassVisitor = CheckClassAdapter(w)
+                            r.accept(v, ClassReader.EXPAND_FRAMES)
+                        } catch (e: Throwable) {
+                            System.err.println("trace jar output ERROR: " + e.message + ", " + zipEntryName) //                        e.printStackTrace();
+                            traceError = true
                         }
                     }
-
-                    InputStream byteArrayInputStream = new ByteArrayInputStream(data);
-                    ZipEntry newZipEntry = new ZipEntry(zipEntryName);
-                    FileUtil.addZipEntry(zipOutputStream, newZipEntry, byteArrayInputStream);
+                    val byteArrayInputStream: InputStream = ByteArrayInputStream(data)
+                    val newZipEntry = ZipEntry(zipEntryName)
+                    FileUtil.addZipEntry(zipOutputStream, newZipEntry, byteArrayInputStream)
                 } else {
-                    InputStream inputStream = zipFile.getInputStream(zipEntry);
-                    ZipEntry newZipEntry = new ZipEntry(zipEntryName);
-                    FileUtil.addZipEntry(zipOutputStream, newZipEntry, inputStream);
+                    val inputStream = zipFile.getInputStream(zipEntry)
+                    val newZipEntry = ZipEntry(zipEntryName)
+                    FileUtil.addZipEntry(zipOutputStream, newZipEntry, inputStream)
                 }
             }
-        } catch (Exception e) {
-            Log.e(TAG, "[innerTraceMethodFromJar] input:%s output:%s e:%s", input, output, e.getMessage());
-            if (e instanceof ZipException) {
-                e.printStackTrace();
-            }
+        } catch (e: Exception) {
+            Log.e(TAG, "[innerTraceMethodFromJar] input:%s output:%s e:%s", input, output, e.message)
+            (e as? ZipException)?.printStackTrace()
             try {
-                if (input.length() > 0) {
-                    Files.copy(input.toPath(), output.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                if(input.length() > 0) {
+                    Files.copy(input.toPath(), output.toPath(), StandardCopyOption.REPLACE_EXISTING)
                 } else {
-                    Log.e(TAG, "[innerTraceMethodFromJar] input:%s is empty", input);
+                    Log.e(TAG, "[innerTraceMethodFromJar] input:%s is empty", input)
                 }
-            } catch (Exception e1) {
-                e1.printStackTrace();
+            } catch (e1: Exception) {
+                e1.printStackTrace()
             }
         } finally {
             try {
-                if (zipOutputStream != null) {
-                    zipOutputStream.finish();
-                    zipOutputStream.flush();
-                    zipOutputStream.close();
+                if(zipOutputStream != null) {
+                    zipOutputStream.finish()
+                    zipOutputStream.flush()
+                    zipOutputStream.close()
                 }
-                if (zipFile != null) {
-                    zipFile.close();
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "close stream err!");
+                zipFile?.close()
+            } catch (e: Exception) {
+                Log.e(TAG, "close stream err!")
             }
         }
     }
-
-    private void listClassFiles(ArrayList<File> classFiles, File folder) {
-        File[] files = folder.listFiles();
-        if (null == files) {
-            Log.e(TAG, "[listClassFiles] files is null! %s", folder.getAbsolutePath());
-            return;
+    
+    private fun listClassFiles(classFiles: ArrayList<File>, folder: File) {
+        val files = folder.listFiles()
+        if(null == files) {
+            Log.e(TAG, "[listClassFiles] files is null! %s", folder.absolutePath)
+            return
         }
-        for (File file : files) {
-            if (file == null) {
-                continue;
+        for (file in files) {
+            if(file == null) {
+                continue
             }
-            if (file.isDirectory()) {
-                listClassFiles(classFiles, file);
+            if(file.isDirectory) {
+                listClassFiles(classFiles, file)
             } else {
-                if (null != file && file.isFile()) {
-                    classFiles.add(file);
+                if(null != file && file.isFile) {
+                    classFiles.add(file)
                 }
-
             }
         }
     }
-
-    private class TraceClassAdapter extends ClassVisitor {
-
-        private String className;
-        private String superName;
-        private boolean isABSClass = false;
-        private boolean hasWindowFocusMethod = false;
-        private boolean isActivityOrSubClass;
-        private boolean isNeedTrace;
-
-        TraceClassAdapter(int i, ClassVisitor classVisitor) {
-            super(i, classVisitor);
-        }
-
-        @Override
-        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-            super.visit(version, access, name, signature, superName, interfaces);
-            this.className = name;
-            this.superName = superName;
-            this.isActivityOrSubClass = isActivityOrSubClass(className, collectedClassExtendMap);
-            this.isNeedTrace = MethodCollector.isNeedTrace(configuration, className, mappingCollector);
-            //接口或者抽象类
-            if ((access & Opcodes.ACC_ABSTRACT) > 0 || (access & Opcodes.ACC_INTERFACE) > 0) {
-                this.isABSClass = true;
+    
+    private inner class TraceClassAdapter internal constructor(i: Int, classVisitor: ClassVisitor?) : ClassVisitor(i, classVisitor) {
+        private var className: String? = null
+        private var superName: String? = null
+        private var isABSClass = false
+        private var hasWindowFocusMethod = false
+        private var isActivityOrSubClass = false
+        private var isNeedTrace = false
+        override fun visit(version: Int, access: Int, name: String, signature: String, superName: String, interfaces: Array<String>) {
+            super.visit(version, access, name, signature, superName, interfaces)
+            className = name
+            this.superName = superName
+            isActivityOrSubClass = isActivityOrSubClass(className, collectedClassExtendMap)
+            isNeedTrace = MethodCollector.Companion.isNeedTrace(configuration, className, mappingCollector) //接口或者抽象类
+            if(access and Opcodes.ACC_ABSTRACT > 0 || access and Opcodes.ACC_INTERFACE > 0) {
+                isABSClass = true
             }
-
         }
-
-        @Override
-        public MethodVisitor visitMethod(int access, String name, String desc,
-                                         String signature, String[] exceptions) {
-            if (!hasWindowFocusMethod) {
-                hasWindowFocusMethod = MethodCollector.isWindowFocusChangeMethod(name, desc);
+        
+        override fun visitMethod(
+            access: Int, name: String, desc: String, signature: String, exceptions: Array<String>
+        ): MethodVisitor {
+            if(!hasWindowFocusMethod) {
+                hasWindowFocusMethod = MethodCollector.Companion.isWindowFocusChangeMethod(name, desc)
             }
-            if (isABSClass) {
-                //过滤接口或者抽象类
-                return super.visitMethod(access, name, desc, signature, exceptions);
+            return if(isABSClass) { //过滤接口或者抽象类
+                super.visitMethod(access, name, desc, signature, exceptions)
             } else {
-                MethodVisitor methodVisitor = cv.visitMethod(access, name, desc, signature, exceptions);
-                return new TraceMethodAdapter(api, methodVisitor, access, name, desc, this.className,
-                        hasWindowFocusMethod, isActivityOrSubClass, isNeedTrace);
+                val methodVisitor = cv.visitMethod(access, name, desc, signature, exceptions)
+                TraceMethodAdapter(
+                    api, methodVisitor, access, name, desc, className, hasWindowFocusMethod, isActivityOrSubClass, isNeedTrace
+                )
             }
         }
-
-
-        @Override
-        public void visitEnd() {
-            if (!hasWindowFocusMethod && isActivityOrSubClass && isNeedTrace) {
-                insertWindowFocusChangeMethod(cv, className, superName);
+        
+        override fun visitEnd() {
+            if(!hasWindowFocusMethod && isActivityOrSubClass && isNeedTrace) {
+                insertWindowFocusChangeMethod(cv, className, superName)
             }
-            super.visitEnd();
+            super.visitEnd()
         }
     }
-
-    private class TraceMethodAdapter extends AdviceAdapter {
-
-        private final String methodName;
-        private final String name;
-        private final String className;
-        private final boolean hasWindowFocusMethod;
-        private final boolean isNeedTrace;
-        private final boolean isActivityOrSubClass;
-
-        protected TraceMethodAdapter(int api, MethodVisitor mv, int access, String name, String desc, String className,
-                                     boolean hasWindowFocusMethod, boolean isActivityOrSubClass, boolean isNeedTrace) {
-            super(api, mv, access, name, desc);
-            TraceMethod traceMethod = TraceMethod.create(0, access, className, name, desc);
-            this.methodName = traceMethod.getMethodName();
-            this.hasWindowFocusMethod = hasWindowFocusMethod;
-            this.className = className;
-            this.name = name;
-            this.isActivityOrSubClass = isActivityOrSubClass;
-            this.isNeedTrace = isNeedTrace;
-
-        }
-
-        @Override
-        protected void onMethodEnter() {
-            TraceMethod traceMethod = collectedMethodMap.get(methodName);
-            if (traceMethod != null) {
-                traceMethodCount.incrementAndGet();
-                mv.visitLdcInsn(traceMethod.id);
-                mv.visitMethodInsn(INVOKESTATIC, TraceBuildConstants.MATRIX_TRACE_CLASS, "i", "(I)V", false);
-
-                if (checkNeedTraceWindowFocusChangeMethod(traceMethod)) {
-                    traceWindowFocusChangeMethod(mv, className);
+    
+    private inner class TraceMethodAdapter(
+        api: Int, mv: MethodVisitor?, access: Int, name: String?, desc: String?, className: String?, hasWindowFocusMethod: Boolean, isActivityOrSubClass: Boolean, isNeedTrace: Boolean
+    ) : AdviceAdapter(api, mv, access, name, desc) {
+        private val methodName: String?
+        private val mName: String?
+        private val className: String?
+        private val hasWindowFocusMethod: Boolean
+        private val isNeedTrace: Boolean
+        private val isActivityOrSubClass: Boolean
+        override fun onMethodEnter() {
+            val traceMethod = collectedMethodMap[methodName]
+            if(traceMethod != null) {
+                traceMethodCount.incrementAndGet()
+                mv.visitLdcInsn(traceMethod.mId)
+                mv.visitMethodInsn(INVOKESTATIC, TraceBuildConstants.MATRIX_TRACE_CLASS, "i", "(I)V", false)
+                if(checkNeedTraceWindowFocusChangeMethod(traceMethod)) {
+                    traceWindowFocusChangeMethod(mv, className)
                 }
             }
         }
-
-
-        @Override
-        protected void onMethodExit(int opcode) {
-            TraceMethod traceMethod = collectedMethodMap.get(methodName);
-            if (traceMethod != null) {
-                traceMethodCount.incrementAndGet();
-                mv.visitLdcInsn(traceMethod.id);
-                mv.visitMethodInsn(INVOKESTATIC, TraceBuildConstants.MATRIX_TRACE_CLASS, "o", "(I)V", false);
+        
+        override fun onMethodExit(opcode: Int) {
+            val traceMethod = collectedMethodMap[methodName]
+            if(traceMethod != null) {
+                traceMethodCount.incrementAndGet()
+                mv.visitLdcInsn(traceMethod.mId)
+                mv.visitMethodInsn(INVOKESTATIC, TraceBuildConstants.MATRIX_TRACE_CLASS, "o", "(I)V", false)
             }
         }
-
-        private boolean checkNeedTraceWindowFocusChangeMethod(TraceMethod traceMethod) {
-            if (hasWindowFocusMethod && isActivityOrSubClass && isNeedTrace) {
-                TraceMethod windowFocusChangeMethod = TraceMethod.create(-1, Opcodes.ACC_PUBLIC, className,
-                        TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS);
-                if (windowFocusChangeMethod.equals(traceMethod)) {
-                    return true;
+        
+        private fun checkNeedTraceWindowFocusChangeMethod(traceMethod: TraceMethod): Boolean {
+            if(hasWindowFocusMethod && isActivityOrSubClass && isNeedTrace) {
+                val windowFocusChangeMethod: TraceMethod = TraceMethod.Companion.create(
+                    -1, ACC_PUBLIC, className, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS
+                )
+                if(windowFocusChangeMethod == traceMethod) {
+                    return true
                 }
             }
-            return false;
+            return false
+        }
+        
+        init {
+            val traceMethod: TraceMethod = TraceMethod.Companion.create(0, access, className, name, desc)
+            methodName = traceMethod.getMethodName()
+            this.hasWindowFocusMethod = hasWindowFocusMethod
+            this.className = className
+            this.mName = name
+            this.isActivityOrSubClass = isActivityOrSubClass
+            this.isNeedTrace = isNeedTrace
         }
     }
-
+    
     /**
      * 判断activiy的子类
      *
@@ -397,29 +323,28 @@ public class MethodTracer {
      * @param mCollectedClassExtendMap
      * @return
      */
-    private boolean isActivityOrSubClass(String className, ConcurrentHashMap<String, String> mCollectedClassExtendMap) {
-        className = className.replace(".", "/");
-        boolean isActivity = className.equals(TraceBuildConstants.MATRIX_TRACE_ACTIVITY_CLASS)
-                || className.equals(TraceBuildConstants.MATRIX_TRACE_V4_ACTIVITY_CLASS)
-                || className.equals(TraceBuildConstants.MATRIX_TRACE_V7_ACTIVITY_CLASS)
-                || className.equals(TraceBuildConstants.MATRIX_TRACE_ANDROIDX_ACTIVITY_CLASS);
-        if (isActivity) {
-            return true;
+    private fun isActivityOrSubClass(className: String?, mCollectedClassExtendMap: ConcurrentHashMap<String?, String?>): Boolean {
+        var className = className
+        className = className!!.replace(".", "/")
+        val isActivity =
+            className == TraceBuildConstants.MATRIX_TRACE_ACTIVITY_CLASS || className == TraceBuildConstants.MATRIX_TRACE_V4_ACTIVITY_CLASS || className == TraceBuildConstants.MATRIX_TRACE_V7_ACTIVITY_CLASS || className == TraceBuildConstants.MATRIX_TRACE_ANDROIDX_ACTIVITY_CLASS
+        return if(isActivity) {
+            true
         } else {
-            if (!mCollectedClassExtendMap.containsKey(className)) {
-                return false;
+            if(!mCollectedClassExtendMap.containsKey(className)) {
+                false
             } else {
-                return isActivityOrSubClass(mCollectedClassExtendMap.get(className), mCollectedClassExtendMap);
+                isActivityOrSubClass(mCollectedClassExtendMap[className], mCollectedClassExtendMap)
             }
         }
     }
-
-    private void traceWindowFocusChangeMethod(MethodVisitor mv, String classname) {
-        mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitVarInsn(Opcodes.ILOAD, 1);
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, TraceBuildConstants.MATRIX_TRACE_CLASS, "at", "(Landroid/app/Activity;Z)V", false);
+    
+    private fun traceWindowFocusChangeMethod(mv: MethodVisitor, classname: String?) {
+        mv.visitVarInsn(Opcodes.ALOAD, 0)
+        mv.visitVarInsn(Opcodes.ILOAD, 1)
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, TraceBuildConstants.MATRIX_TRACE_CLASS, "at", "(Landroid/app/Activity;Z)V", false)
     }
-
+    
     /**
      * 给activity加入  WindowFocusChangeMethod 方法
      *
@@ -427,19 +352,24 @@ public class MethodTracer {
      * @param classname
      * @param superClassName
      */
-    private void insertWindowFocusChangeMethod(ClassVisitor cv, String classname, String superClassName) {
-        MethodVisitor methodVisitor = cv.visitMethod(Opcodes.ACC_PUBLIC, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD,
-                TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS, null, null);
-        methodVisitor.visitCode();
-        methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-        methodVisitor.visitVarInsn(Opcodes.ILOAD, 1);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superClassName, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD,
-                TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS, false);
-        traceWindowFocusChangeMethod(methodVisitor, classname);
-        methodVisitor.visitInsn(Opcodes.RETURN);
-        methodVisitor.visitMaxs(2, 2);
-        methodVisitor.visitEnd();
-
+    private fun insertWindowFocusChangeMethod(cv: ClassVisitor, classname: String?, superClassName: String?) {
+        val methodVisitor = cv.visitMethod(
+            Opcodes.ACC_PUBLIC, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS, null, null
+        )
+        methodVisitor.visitCode()
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+        methodVisitor.visitVarInsn(Opcodes.ILOAD, 1)
+        methodVisitor.visitMethodInsn(
+            Opcodes.INVOKESPECIAL, superClassName, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS, false
+        )
+        traceWindowFocusChangeMethod(methodVisitor, classname)
+        methodVisitor.visitInsn(Opcodes.RETURN)
+        methodVisitor.visitMaxs(2, 2)
+        methodVisitor.visitEnd()
     }
-
+    
+    companion object {
+        private const val TAG = "Matrix.MethodTracer"
+        private val traceMethodCount = AtomicInteger()
+    }
 }

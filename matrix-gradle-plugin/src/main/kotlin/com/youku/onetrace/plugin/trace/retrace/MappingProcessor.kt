@@ -1,8 +1,6 @@
+package com.youku.onetrace.plugin.trace.retrace
 
-
-package com.youku.onetrace.trace.retrace;
-
-public interface MappingProcessor {
+interface MappingProcessor {
     /**
      * mapping the class name.
      *
@@ -11,9 +9,10 @@ public interface MappingProcessor {
      * @return whether the processor is interested in receiving mappings of the class members of
      * this class.
      */
-    boolean processClassMapping(String className,
-                                       String newClassName);
-
+    fun processClassMapping(
+        className: String, newClassName: String
+    ): Boolean
+    
     /**
      * mapping the method name.
      *
@@ -24,10 +23,7 @@ public interface MappingProcessor {
      * @param newClassName       the new class name.
      * @param newMethodName      the new method name.
      */
-    void processMethodMapping(String className,
-                                     String methodReturnType,
-                                     String methodName,
-                                     String methodArguments,
-                                     String newClassName,
-                                     String newMethodName);
+    fun processMethodMapping(
+        className: String, methodReturnType: String?, methodName: String, methodArguments: String, newClassName: String?, newMethodName: String
+    )
 }

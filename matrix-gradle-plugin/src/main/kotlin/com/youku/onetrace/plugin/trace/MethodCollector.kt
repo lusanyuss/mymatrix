@@ -1,529 +1,406 @@
-package com.youku.onetrace.trace;
+package com.youku.onetrace.plugin.trace
 
-import com.youku.onetrace.javalib.util.Log;
-import com.youku.onetrace.plugin.compat.AgpCompat;
-import com.youku.onetrace.trace.item.TraceMethod;
-import com.youku.onetrace.trace.retrace.MappingCollector;
-
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
-public class MethodCollector {
-
-    private static final String TAG = "MethodCollector";
-
-    private final ExecutorService executor;
-    private final MappingCollector mappingCollector;
+import com.youku.onetrace.javalib.util.Log
+import com.youku.onetrace.plugin.compat.AgpCompat.Companion.asmApi
+import com.youku.onetrace.plugin.trace.item.TraceMethod
+import com.youku.onetrace.plugin.trace.retrace.MappingCollector
+import org.objectweb.asm.*
+import org.objectweb.asm.tree.MethodNode
+import java.io.*
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.zip.ZipFile
 
 
+class MethodCollector(
+    private val executor: ExecutorService,
+    private val mappingCollector: MappingCollector,
+    private val methodId: AtomicInteger,
+    private val configuration: Configuration,
+    val collectedMethodMap: ConcurrentHashMap<String?, TraceMethod?>
+) {
     //className->superName
-    private final ConcurrentHashMap<String, String> collectedClassExtendMap = new ConcurrentHashMap<>();
+    val collectedClassExtendMap = ConcurrentHashMap<String?, String?>()
+    
     //被忽略的方法搜集:名称->方法信息bean
-    private final ConcurrentHashMap<String, TraceMethod> collectedIgnoreMethodMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, TraceMethod> collectedMethodMap;
-    private final Configuration configuration;
-    private final AtomicInteger methodId;
-    private final AtomicInteger ignoreCount = new AtomicInteger();
-    private final AtomicInteger incrementCount = new AtomicInteger();
-
-    public MethodCollector(ExecutorService executor, MappingCollector mappingCollector, AtomicInteger methodId,
-                           Configuration configuration, ConcurrentHashMap<String, TraceMethod> collectedMethodMap) {
-        this.executor = executor;
-        this.mappingCollector = mappingCollector;
-        this.configuration = configuration;
-        this.methodId = methodId;
-        this.collectedMethodMap = collectedMethodMap;
-    }
-
-    public ConcurrentHashMap<String, String> getCollectedClassExtendMap() {
-        return collectedClassExtendMap;
-    }
-
-    public ConcurrentHashMap<String, TraceMethod> getCollectedMethodMap() {
-        return collectedMethodMap;
-    }
-
+    private val collectedIgnoreMethodMap = ConcurrentHashMap<String?, TraceMethod?>()
+    private val ignoreCount = AtomicInteger()
+    private val incrementCount = AtomicInteger()
+    
     /**
      * 对所有的类进行插桩,并保存,收集的方法和忽略方法
      *
      * @param srcFolderList
      * @param dependencyJarList
-     * @throws ExecutionException
-     * @throws InterruptedException
+     * @kotlin.jvm.Throws ExecutionException
+     * @kotlin.jvm.Throws InterruptedException
      */
-    public void collect(Set<File> srcFolderList, Set<File> dependencyJarList) throws ExecutionException, InterruptedException {
-        List<Future> futures = new LinkedList<>();
-
-        for (File srcFile : srcFolderList) {
-            //文件全部装到classFileList
-            ArrayList<File> classFileList = new ArrayList<>();
-            if (srcFile.isDirectory()) {
-                listClassFiles(classFileList, srcFile);
+    @kotlin.jvm.Throws(ExecutionException::class, InterruptedException::class)
+    fun collect(srcFolderList: Set<File>, dependencyJarList: Set<File>) {
+        val futures: MutableList<Future<*>> = LinkedList()
+        for (srcFile in srcFolderList) { //文件全部装到classFileList
+            val classFileList = ArrayList<File>()
+            if(srcFile.isDirectory) {
+                listClassFiles(classFileList, srcFile)
             } else {
-                classFileList.add(srcFile);
+                classFileList.add(srcFile)
             }
-
+            
             //对源码的所有的文件进行插桩
-            for (File classFile : classFileList) {
-                futures.add(executor.submit(new CollectSrcTask(classFile)));
+            for (classFile in classFileList) {
+                futures.add(executor.submit(CollectSrcTask(classFile)))
             }
         }
-
+        
         //对jar文件进行插桩
-        for (File jarFile : dependencyJarList) {
-            futures.add(executor.submit(new CollectJarTask(jarFile)));
+        for (jarFile in dependencyJarList) {
+            futures.add(executor.submit(CollectJarTask(jarFile)))
         }
-
-        for (Future future : futures) {
-            future.get();
+        for (future in futures) {
+            future.get()
         }
-        futures.clear();
-
+        futures.clear()
+        
         //保存忽略收集的方法
-        futures.add(executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                saveIgnoreCollectedMethod(mappingCollector);
-            }
-        }));
-
+        futures.add(executor.submit { saveIgnoreCollectedMethod(mappingCollector) })
+        
         //保存收集的方法
-        futures.add(executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                saveCollectedMethod(mappingCollector);
-            }
-        }));
-
+        futures.add(executor.submit { saveCollectedMethod(mappingCollector) })
         /**
          * 链表填满后就可以获取顺序结果
          */
-        for (Future future : futures) {
-            future.get();
+        for (future in futures) {
+            future.get()
         }
-        futures.clear();
-
+        futures.clear()
     }
-
-
+    
     /**
      * 源码插桩线程
      */
-    class CollectSrcTask implements Runnable {
-
-        File classFile;
-
-        CollectSrcTask(File classFile) {
-            this.classFile = classFile;
-        }
-
-        @Override
-        public void run() {
-            InputStream is = null;
+    internal inner class CollectSrcTask(var classFile: File?) : Runnable {
+        override fun run() {
+            var `is`: InputStream? = null
             try {
-                is = new FileInputStream(classFile);
-                ClassReader classReader = new ClassReader(is);
-                ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                ClassVisitor visitor = new TraceClassAdapter(AgpCompat.getAsmApi(), classWriter);
-                classReader.accept(visitor, 0);
-
-            } catch (Exception e) {
-                e.printStackTrace();
+                `is` = FileInputStream(classFile)
+                val classReader = ClassReader(`is`)
+                val classWriter = ClassWriter(ClassWriter.COMPUTE_MAXS)
+                val visitor: ClassVisitor = TraceClassAdapter(asmApi, classWriter)
+                classReader.accept(visitor, 0)
+            } catch (e: Exception) {
+                e.printStackTrace()
             } finally {
                 try {
-                    is.close();
-                } catch (Exception e) {
+                    `is`!!.close()
+                } catch (e: Exception) {
                 }
             }
         }
     }
-
+    
     /**
      * jar包插桩线程
      */
-    class CollectJarTask implements Runnable {
-
-        File fromJar;
-
-        CollectJarTask(File jarFile) {
-            this.fromJar = jarFile;
-        }
-
-        @Override
-        public void run() {
-            ZipFile zipFile = null;
-
+    internal inner class CollectJarTask(var fromJar: File) : Runnable {
+        override fun run() {
+            var zipFile: ZipFile? = null
             try {
-                zipFile = new ZipFile(fromJar);
-                Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
+                zipFile = ZipFile(fromJar)
+                val enumeration = zipFile.entries()
                 while (enumeration.hasMoreElements()) {
-                    ZipEntry zipEntry = enumeration.nextElement();
-                    String zipEntryName = zipEntry.getName();
-                    if (isNeedTraceFile(zipEntryName)) {
-                        InputStream inputStream = zipFile.getInputStream(zipEntry);
-                        ClassReader classReader = new ClassReader(inputStream);
-                        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                        ClassVisitor visitor = new TraceClassAdapter(AgpCompat.getAsmApi(), classWriter);
-                        classReader.accept(visitor, 0);
+                    val zipEntry = enumeration.nextElement()
+                    val zipEntryName = zipEntry.name
+                    if(isNeedTraceFile(zipEntryName)) {
+                        val inputStream = zipFile.getInputStream(zipEntry)
+                        val classReader = ClassReader(inputStream)
+                        val classWriter = ClassWriter(ClassWriter.COMPUTE_MAXS)
+                        val visitor: ClassVisitor = TraceClassAdapter(asmApi, classWriter)
+                        classReader.accept(visitor, 0)
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (e: Exception) {
+                e.printStackTrace()
             } finally {
                 try {
-                    zipFile.close();
-                } catch (Exception e) {
-                    Log.e(TAG, "close stream err! fromJar:%s", fromJar.getAbsolutePath());
+                    zipFile!!.close()
+                } catch (e: Exception) {
+                    Log.e(TAG, "close stream err! fromJar:%s", fromJar.absolutePath)
                 }
             }
         }
     }
-
-
+    
     /**
      * 保存收集到的忽略的收集到的方法
      *
      * @param mappingCollector
      */
-    private void saveIgnoreCollectedMethod(MappingCollector mappingCollector) {
-
-        File methodMapFile = new File(configuration.ignoreMethodMapFilePath);
-        if (!methodMapFile.getParentFile().exists()) {
-            methodMapFile.getParentFile().mkdirs();
+    private fun saveIgnoreCollectedMethod(mappingCollector: MappingCollector) {
+        val methodMapFile = File(configuration.ignoreMethodMapFilePath!!)
+        if(!methodMapFile.parentFile.exists()) {
+            methodMapFile.parentFile.mkdirs()
         }
-        List<TraceMethod> ignoreMethodList = new ArrayList<>();
-        ignoreMethodList.addAll(collectedIgnoreMethodMap.values());
-        Log.i(TAG, "[saveIgnoreCollectedMethod] size:%s path:%s", collectedIgnoreMethodMap.size(), methodMapFile.getAbsolutePath());
-
+        val ignoreMethodList: MutableList<TraceMethod?> = ArrayList()
+        ignoreMethodList.addAll(collectedIgnoreMethodMap.values)
+        Log.i(TAG, "[saveIgnoreCollectedMethod] size:%s path:%s", collectedIgnoreMethodMap.size, methodMapFile.absolutePath)
+        
         //排序
-        Collections.sort(ignoreMethodList, new Comparator<TraceMethod>() {
-            @Override
-            public int compare(TraceMethod o1, TraceMethod o2) {
-                return o1.className.compareTo(o2.className);
-            }
-        });
-
+        Collections.sort(ignoreMethodList) { o1, o2 -> o1?.mClassName!!.compareTo(o2?.mClassName!!) }
+        
         //输出文件
-        PrintWriter pw = null;
+        var pw: PrintWriter? = null
         try {
-            FileOutputStream fileOutputStream = new FileOutputStream(methodMapFile, false);
-            Writer w = new OutputStreamWriter(fileOutputStream, "UTF-8");
-            pw = new PrintWriter(w);
-            pw.println("ignore methods:");
-            for (TraceMethod traceMethod : ignoreMethodList) {
-                traceMethod.revert(mappingCollector);
-                pw.println(traceMethod.toIgnoreString());
+            val fileOutputStream = FileOutputStream(methodMapFile, false)
+            val w: Writer = OutputStreamWriter(fileOutputStream, "UTF-8")
+            pw = PrintWriter(w)
+            pw.println("ignore methods:")
+            for (traceMethod in ignoreMethodList) {
+                traceMethod?.revert(mappingCollector)
+                pw.println(traceMethod?.toIgnoreString())
             }
-        } catch (Exception e) {
-            Log.e(TAG, "write method map Exception:%s", e.getMessage());
-            e.printStackTrace();
+        } catch (e: Exception) {
+            Log.e(TAG, "write method map Exception:%s", e.message)
+            e.printStackTrace()
         } finally {
-            if (pw != null) {
-                pw.flush();
-                pw.close();
+            if(pw != null) {
+                pw.flush()
+                pw.close()
             }
         }
     }
-
+    
     /**
      * 保存混淆方法
      *
      * @param mappingCollector
      */
-    private void saveCollectedMethod(MappingCollector mappingCollector) {
-        File methodMapFile = new File(configuration.methodMapFilePath);
-        if (!methodMapFile.getParentFile().exists()) {
-            methodMapFile.getParentFile().mkdirs();
+    private fun saveCollectedMethod(mappingCollector: MappingCollector) {
+        val methodMapFile = File(configuration.methodMapFilePath)
+        if(!methodMapFile.parentFile.exists()) {
+            methodMapFile.parentFile.mkdirs()
         }
-        List<TraceMethod> methodList = new ArrayList<>();
-
+        val methodList: MutableList<TraceMethod?> = ArrayList()
+        
         /**
          * handler的dispatchMessage也要加打点跟踪方法
          */
-        TraceMethod extra = TraceMethod.create(TraceBuildConstants.METHOD_ID_DISPATCH, Opcodes.ACC_PUBLIC, "android.os.Handler",
-                "dispatchMessage", "(Landroid.os.Message;)V");
-        collectedMethodMap.put(extra.getMethodName(), extra);
-
-        methodList.addAll(collectedMethodMap.values());
-
-        Log.i(TAG, "[saveCollectedMethod] size:%s incrementCount:%s path:%s", collectedMethodMap.size(), incrementCount.get(), methodMapFile.getAbsolutePath());
-
-        Collections.sort(methodList, new Comparator<TraceMethod>() {
-            @Override
-            public int compare(TraceMethod o1, TraceMethod o2) {
-                return o1.id - o2.id;
-            }
-        });
-
-        PrintWriter pw = null;
+        val extra: TraceMethod = TraceMethod.Companion.create(
+            TraceBuildConstants.METHOD_ID_DISPATCH, Opcodes.ACC_PUBLIC, "android.os.Handler", "dispatchMessage", "(Landroid.os.Message;)V"
+        )
+        collectedMethodMap[extra.getMethodName()] = extra
+        methodList.addAll(collectedMethodMap.values)
+        Log.i(TAG, "[saveCollectedMethod] size:%s incrementCount:%s path:%s", collectedMethodMap.size, incrementCount.get(), methodMapFile.absolutePath)
+        Collections.sort(methodList) { o1, o2 -> o1?.mId!! - o2?.mId!! }
+        var pw: PrintWriter? = null
         try {
-            FileOutputStream fileOutputStream = new FileOutputStream(methodMapFile, false);
-            Writer w = new OutputStreamWriter(fileOutputStream, "UTF-8");
-            pw = new PrintWriter(w);
-            for (TraceMethod traceMethod : methodList) {
-                traceMethod.revert(mappingCollector);
-                pw.println(traceMethod.toString());
+            val fileOutputStream = FileOutputStream(methodMapFile, false)
+            val w: Writer = OutputStreamWriter(fileOutputStream, "UTF-8")
+            pw = PrintWriter(w)
+            for (traceMethod in methodList) {
+                traceMethod?.revert(mappingCollector)
+                pw.println(traceMethod.toString())
             }
-        } catch (Exception e) {
-            Log.e(TAG, "write method map Exception:%s", e.getMessage());
-            e.printStackTrace();
+        } catch (e: Exception) {
+            Log.e(TAG, "write method map Exception:%s", e.message)
+            e.printStackTrace()
         } finally {
-            if (pw != null) {
-                pw.flush();
-                pw.close();
+            if(pw != null) {
+                pw.flush()
+                pw.close()
             }
         }
     }
-
-    private class TraceClassAdapter extends ClassVisitor {
-        private String className;
-        private boolean isABSClass = false;
-        private boolean hasWindowFocusMethod = false;
-
-        TraceClassAdapter(int i, ClassVisitor classVisitor) {
-            super(i, classVisitor);
+    
+    private inner class TraceClassAdapter internal constructor(i: Int, classVisitor: ClassVisitor?) : ClassVisitor(i, classVisitor) {
+        private var className: String? = null
+        private var isABSClass = false
+        private var hasWindowFocusMethod = false
+        override fun visit(version: Int, access: Int, name: String, signature: String, superName: String, interfaces: Array<String>) {
+            super.visit(version, access, name, signature, superName, interfaces)
+            className = name
+            if(access and Opcodes.ACC_ABSTRACT > 0 || access and Opcodes.ACC_INTERFACE > 0) {
+                isABSClass = true
+            } //收集类和父类映射关系
+            collectedClassExtendMap[className!!] = superName
         }
-
-        @Override
-        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-            super.visit(version, access, name, signature, superName, interfaces);
-            this.className = name;
-            if ((access & Opcodes.ACC_ABSTRACT) > 0 || (access & Opcodes.ACC_INTERFACE) > 0) {
-                this.isABSClass = true;
-            }
-            //收集类和父类映射关系
-            collectedClassExtendMap.put(className, superName);
-        }
-
-        @Override
-        public MethodVisitor visitMethod(int access, String name, String desc,
-                                         String signature, String[] exceptions) {
-            if (isABSClass) {
-                return super.visitMethod(access, name, desc, signature, exceptions);
+        
+        override fun visitMethod(
+            access: Int, name: String, desc: String, signature: String, exceptions: Array<String>
+        ): MethodVisitor {
+            return if(isABSClass) {
+                super.visitMethod(access, name, desc, signature, exceptions)
             } else {
-                if (!hasWindowFocusMethod) {
-                    hasWindowFocusMethod = isWindowFocusChangeMethod(name, desc);
-                }
-                //收集混淆和不混淆方法的映射关系
-                return new CollectMethodNode(className, access, name, desc, signature, exceptions);
+                if(!hasWindowFocusMethod) {
+                    hasWindowFocusMethod = isWindowFocusChangeMethod(name, desc)
+                } //收集混淆和不混淆方法的映射关系
+                CollectMethodNode(className, access, name, desc, signature, exceptions)
             }
         }
     }
-
-    private class CollectMethodNode extends MethodNode {
-        private String className;
-        private boolean isConstructor;
-
-
-        CollectMethodNode(String className, int access, String name, String desc,
-                          String signature, String[] exceptions) {
-            super(AgpCompat.getAsmApi(), access, name, desc, signature, exceptions);
-            this.className = className;
+    
+    private inner class CollectMethodNode internal constructor(
+        private val className: String?, access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<String>?
+    ) : MethodNode(asmApi, access, name, desc, signature, exceptions) {
+        private var isConstructor = false
+        override fun visitEnd() {
+            super.visitEnd()
+            val traceMethod: TraceMethod = TraceMethod.Companion.create(0, access, className, name, desc)
+            if("<init>" == name) {
+                isConstructor = true
+            }
+            val isNeedTrace = isNeedTrace(configuration, traceMethod.mClassName, mappingCollector) // filter simple methods
+            if((isEmptyMethod || isGetSetMethod || isSingleMethod) && isNeedTrace) {
+                ignoreCount.incrementAndGet()
+                collectedIgnoreMethodMap[traceMethod.getMethodName()] = traceMethod
+                return
+            }
+            if(isNeedTrace && !collectedMethodMap.containsKey(traceMethod.getMethodName())) {
+                traceMethod.mId = methodId.incrementAndGet()
+                collectedMethodMap[traceMethod.getMethodName()] = traceMethod
+                incrementCount.incrementAndGet()
+            } else if(!isNeedTrace && !collectedIgnoreMethodMap.containsKey(traceMethod.mClassName)) {
+                ignoreCount.incrementAndGet()
+                collectedIgnoreMethodMap[traceMethod.getMethodName()] = traceMethod
+            }
         }
-
-        @Override
-        public void visitEnd() {
-            super.visitEnd();
-            TraceMethod traceMethod = TraceMethod.create(0, access, className, name, desc);
-
-            if ("<init>".equals(name)) {
-                isConstructor = true;
-            }
-
-            boolean isNeedTrace = isNeedTrace(configuration, traceMethod.className, mappingCollector);
-            // filter simple methods
-            if ((isEmptyMethod() || isGetSetMethod() || isSingleMethod())
-                    && isNeedTrace) {
-                ignoreCount.incrementAndGet();
-                collectedIgnoreMethodMap.put(traceMethod.getMethodName(), traceMethod);
-                return;
-            }
-
-            if (isNeedTrace && !collectedMethodMap.containsKey(traceMethod.getMethodName())) {
-                traceMethod.id = methodId.incrementAndGet();
-                collectedMethodMap.put(traceMethod.getMethodName(), traceMethod);
-                incrementCount.incrementAndGet();
-            } else if (!isNeedTrace && !collectedIgnoreMethodMap.containsKey(traceMethod.className)) {
-                ignoreCount.incrementAndGet();
-                collectedIgnoreMethodMap.put(traceMethod.getMethodName(), traceMethod);
-            }
-
-        }
-
+        
         /**
          * get或者set方法
          *
          * @return
          */
-        private boolean isGetSetMethod() {
-            int ignoreCount = 0;
-            ListIterator<AbstractInsnNode> iterator = instructions.iterator();
-            while (iterator.hasNext()) {
-                AbstractInsnNode insnNode = iterator.next();
-                int opcode = insnNode.getOpcode();
-                if (-1 == opcode) {
-                    continue;
-                }
-                if (opcode != Opcodes.GETFIELD
-                        && opcode != Opcodes.GETSTATIC
-                        && opcode != Opcodes.H_GETFIELD
-                        && opcode != Opcodes.H_GETSTATIC
-
-                        && opcode != Opcodes.RETURN
-                        && opcode != Opcodes.ARETURN
-                        && opcode != Opcodes.DRETURN
-                        && opcode != Opcodes.FRETURN
-                        && opcode != Opcodes.LRETURN
-                        && opcode != Opcodes.IRETURN
-
-                        && opcode != Opcodes.PUTFIELD
-                        && opcode != Opcodes.PUTSTATIC
-                        && opcode != Opcodes.H_PUTFIELD
-                        && opcode != Opcodes.H_PUTSTATIC
-                        && opcode > Opcodes.SALOAD) {
-                    if (isConstructor && opcode == Opcodes.INVOKESPECIAL) {
-                        ignoreCount++;
-                        if (ignoreCount > 1) {
-                            return false;
-                        }
-                        continue;
+        private val isGetSetMethod: Boolean
+            private get() {
+                var ignoreCount = 0
+                val iterator = instructions.iterator()
+                while (iterator.hasNext()) {
+                    val insnNode = iterator.next()
+                    val opcode = insnNode.opcode
+                    if(-1 == opcode) {
+                        continue
                     }
-                    return false;
+                    if(opcode != Opcodes.GETFIELD && opcode != Opcodes.GETSTATIC && opcode != Opcodes.H_GETFIELD && opcode != Opcodes.H_GETSTATIC && opcode != Opcodes.RETURN && opcode != Opcodes.ARETURN && opcode != Opcodes.DRETURN && opcode != Opcodes.FRETURN && opcode != Opcodes.LRETURN && opcode != Opcodes.IRETURN && opcode != Opcodes.PUTFIELD && opcode != Opcodes.PUTSTATIC && opcode != Opcodes.H_PUTFIELD && opcode != Opcodes.H_PUTSTATIC && opcode > Opcodes.SALOAD) {
+                        if(isConstructor && opcode == Opcodes.INVOKESPECIAL) {
+                            ignoreCount++
+                            if(ignoreCount > 1) {
+                                return false
+                            }
+                            continue
+                        }
+                        return false
+                    }
                 }
+                return true
             }
-            return true;
-        }
-
-        private boolean isSingleMethod() {
-            ListIterator<AbstractInsnNode> iterator = instructions.iterator();
-            while (iterator.hasNext()) {
-                AbstractInsnNode insnNode = iterator.next();
-                int opcode = insnNode.getOpcode();
-                if (-1 == opcode) {
-                    continue;
-                } else if (Opcodes.INVOKEVIRTUAL <= opcode && opcode <= Opcodes.INVOKEDYNAMIC) {
-                    return false;
+        private val isSingleMethod: Boolean
+            private get() {
+                val iterator = instructions.iterator()
+                while (iterator.hasNext()) {
+                    val insnNode = iterator.next()
+                    val opcode = insnNode.opcode
+                    if(-1 == opcode) {
+                        continue
+                    } else if(Opcodes.INVOKEVIRTUAL <= opcode && opcode <= Opcodes.INVOKEDYNAMIC) {
+                        return false
+                    }
                 }
+                return true
             }
-            return true;
-        }
-
+        
         /**
          * 空方法
          *
          * @return
          */
-        private boolean isEmptyMethod() {
-            ListIterator<AbstractInsnNode> iterator = instructions.iterator();
-            while (iterator.hasNext()) {
-                AbstractInsnNode insnNode = iterator.next();
-                int opcode = insnNode.getOpcode();
-                if (-1 == opcode) {
-                    continue;
-                } else {
-                    return false;
+        private val isEmptyMethod: Boolean
+            private get() {
+                val iterator = instructions.iterator()
+                while (iterator.hasNext()) {
+                    val insnNode = iterator.next()
+                    val opcode = insnNode.opcode
+                    return if(-1 == opcode) {
+                        continue
+                    } else {
+                        false
+                    }
+                }
+                return true
+            }
+    }
+    
+    private fun listClassFiles(classFiles: ArrayList<File>, folder: File) {
+        val files = folder.listFiles()
+        if(null == files) {
+            Log.e(TAG, "[listClassFiles] files is null! %s", folder.absolutePath)
+            return
+        }
+        for (file in files) {
+            if(file == null) {
+                continue
+            }
+            if(file.isDirectory) {
+                listClassFiles(classFiles, file)
+            } else if(isNeedTraceFile(file.name)) {
+                classFiles.add(file)
+            }
+        }
+    }
+    
+    companion object {
+        const val TAG = "MethodCollector"
+        fun isWindowFocusChangeMethod(name: String?, desc: String?): Boolean {
+            return null != name && null != desc && name == TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD && desc == TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS
+        }
+        
+        /**
+         * 是否需要跟踪
+         *
+         * @param configuration
+         * @param clsName
+         * @param mappingCollector
+         * @return
+         */
+        fun isNeedTrace(configuration: Configuration, clsName: String?, mappingCollector: MappingCollector?): Boolean {
+            var clsName = clsName
+            var isNeed = true
+            if(configuration.blockSet.contains(clsName)) {
+                isNeed = false
+            } else {
+                if(null != mappingCollector) {
+                    clsName = mappingCollector.originalClassName(clsName, clsName)
+                }
+                clsName = clsName!!.replace("/".toRegex(), ".")
+                for (packageName in configuration.blockSet) {
+                    if(clsName.startsWith(packageName!!.replace("/".toRegex(), "."))) {
+                        isNeed = false
+                        break
+                    }
                 }
             }
-            return true;
+            return isNeed
         }
-
-    }
-
-    public static boolean isWindowFocusChangeMethod(String name, String desc) {
-        return null != name && null != desc && name.equals(TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD) && desc.equals(TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS);
-    }
-
-    /**
-     * 是否需要跟踪
-     *
-     * @param configuration
-     * @param clsName
-     * @param mappingCollector
-     * @return
-     */
-    public static boolean isNeedTrace(Configuration configuration, String clsName, MappingCollector mappingCollector) {
-        boolean isNeed = true;
-        if (configuration.blockSet.contains(clsName)) {
-            isNeed = false;
-        } else {
-            if (null != mappingCollector) {
-                clsName = mappingCollector.originalClassName(clsName, clsName);
-            }
-            clsName = clsName.replaceAll("/", ".");
-            for (String packageName : configuration.blockSet) {
-                if (clsName.startsWith(packageName.replaceAll("/", "."))) {
-                    isNeed = false;
-                    break;
+        
+        /**
+         * 过滤系统的一些文件:"R.class", "R$", "Manifest", "BuildConfig"
+         *
+         * @param fileName
+         * @return
+         */
+        fun isNeedTraceFile(fileName: String): Boolean {
+            if(fileName.endsWith(".class")) {
+                for (unTraceCls in TraceBuildConstants.UN_TRACE_CLASS) {
+                    if(fileName.contains(unTraceCls!!)) {
+                        return false
+                    }
                 }
+            } else {
+                return false
             }
-        }
-        return isNeed;
-    }
-
-
-    private void listClassFiles(ArrayList<File> classFiles, File folder) {
-        File[] files = folder.listFiles();
-        if (null == files) {
-            Log.e(TAG, "[listClassFiles] files is null! %s", folder.getAbsolutePath());
-            return;
-        }
-        for (File file : files) {
-            if (file == null) {
-                continue;
-            }
-            if (file.isDirectory()) {
-                listClassFiles(classFiles, file);
-            } else if (isNeedTraceFile(file.getName())) {
-                classFiles.add(file);
-            }
+            return true
         }
     }
-
-    /**
-     * 过滤系统的一些文件:"R.class", "R$", "Manifest", "BuildConfig"
-     *
-     * @param fileName
-     * @return
-     */
-    public static boolean isNeedTraceFile(String fileName) {
-        if (fileName.endsWith(".class")) {
-            for (String unTraceCls : TraceBuildConstants.UN_TRACE_CLASS) {
-                if (fileName.contains(unTraceCls)) {
-                    return false;
-                }
-            }
-        } else {
-            return false;
-        }
-        return true;
-    }
-
 }
