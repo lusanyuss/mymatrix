@@ -36,7 +36,7 @@ class ApmTraceLegacyTransform(
             
             val config = Configuration.Builder().setPackageName(variant.applicationId).setBaseMethodMap(extension.baseMethodMapFile).setBlockListFile(extension.blackListFile)
                 .setMethodMapFilePath("$mappingOut/methodMapping.txt").setIgnoreMethodMapFilePath("$mappingOut/ignoreMethodMapping.txt").setMappingPath(mappingOut).setTraceClassOut(traceClassOut)
-                .setSkipCheckClass(extension.isSkipCheckClass).build()
+                .setSkipCheckClass(extension.skipCheckClass).build()
             
             val hardTask = getTransformTaskName(extension.customDexTransformName, variant.name)
             for (task in project.tasks) {

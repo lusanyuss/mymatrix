@@ -173,7 +173,7 @@ abstract class ApmTraceTask : DefaultTask() {
             }
             task.mappingDir.set(mappingOut)
             task.traceClassOutputDirectory.set(traceClassOut)
-            task.skipCheckClass.set(extension.isSkipCheckClass)
+            task.skipCheckClass.set(extension.skipCheckClass)
             
             // Output properties
             task.ignoreMethodMapFileOutput.set(File("$mappingOut/ignoreMethodMapping.txt"))

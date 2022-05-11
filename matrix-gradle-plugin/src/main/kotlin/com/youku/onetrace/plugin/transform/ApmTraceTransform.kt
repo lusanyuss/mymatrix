@@ -142,7 +142,7 @@ class ApmTraceTransform(
         )
         
         return Configuration.Builder().setBaseMethodMap(extension.baseMethodMapFile).setBlockListFile(extension.blackListFile).setMethodMapFilePath("$mappingOut/methodMapping.txt")
-            .setIgnoreMethodMapFilePath("$mappingOut/ignoreMethodMapping.txt").setMappingPath(mappingOut).setSkipCheckClass(extension.isSkipCheckClass).build()
+            .setIgnoreMethodMapFilePath("$mappingOut/ignoreMethodMapping.txt").setMappingPath(mappingOut).setSkipCheckClass(extension.skipCheckClass).build()
     }
     
     private fun transforming(invocation: TransformInvocation) {

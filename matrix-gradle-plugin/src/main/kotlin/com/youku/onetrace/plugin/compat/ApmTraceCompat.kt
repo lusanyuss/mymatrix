@@ -50,7 +50,7 @@ class ApmTraceCompat : ITraceSwitchListener {
         
         project.afterEvaluate {
             
-            if(!extension.isEnable) {
+            if(!extension.enable) {
                 return@afterEvaluate
             } // todo yuliu:  变体工件
             appExtension.applicationVariants.all {

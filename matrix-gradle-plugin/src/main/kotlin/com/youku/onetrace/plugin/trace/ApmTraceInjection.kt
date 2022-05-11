@@ -33,7 +33,7 @@ class ApmTraceInjection : ITraceSwitchListener {
     ) {
         injectTransparentTransform(appExtension, project, extension)
         project.afterEvaluate {
-            if(extension.isEnable) {
+            if(extension.enable) {
                 doInjection(appExtension, project, extension)
             }
         }
@@ -118,7 +118,7 @@ class ApmTraceInjection : ITraceSwitchListener {
         project: Project, extension: ApmTraceExtension, variant: BaseVariant
     ): InjectionMode {
         
-        if(!variant.buildType.isMinifyEnabled || extension.isTransformInjectionForced || getCodeShrinker(project) == CodeShrinker.R8) {
+        if(!variant.buildType.isMinifyEnabled || extension.transformInjectionForced || getCodeShrinker(project) == CodeShrinker.R8) {
             return InjectionMode.TransformInjection
         }
         
