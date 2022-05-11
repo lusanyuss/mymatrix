@@ -10,7 +10,7 @@ import com.youku.onetrace.javalib.util.Pair
 import com.youku.onetrace.javalib.util.Util
 import com.youku.onetrace.plugin.compat.AgpCompat
 import com.youku.onetrace.plugin.compat.CreationConfig
-import com.youku.onetrace.plugin.extension.MatrixRemoveUnusedResExtension
+import com.youku.onetrace.plugin.extension.ApmRemoveUnusedResExtension
 import com.youku.onetrace.shrinker.RemoveUnusedResourceHelper
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
@@ -23,7 +23,7 @@ import java.util.zip.ZipOutputStream
 abstract class RemoveUnusedResourcesTask : DefaultTask() {
     
     companion object {
-        const val TAG = "Matrix.RemoveUnusedResourcesTask"
+        const val TAG = "Apm.RemoveUnusedResourcesTask"
     }
     
     private lateinit var variant: BaseVariant
@@ -57,7 +57,7 @@ abstract class RemoveUnusedResourcesTask : DefaultTask() {
     }
     
     class CreationAction(
-        private val creationConfig: CreationConfig, private val removeUnusedResources: MatrixRemoveUnusedResExtension
+        private val creationConfig: CreationConfig, private val removeUnusedResources: ApmRemoveUnusedResExtension
     ) : Action<RemoveUnusedResourcesTask>, BaseCreationAction<RemoveUnusedResourcesTask>(creationConfig) {
         
         override val name = computeTaskName("remove", "UnusedResources")

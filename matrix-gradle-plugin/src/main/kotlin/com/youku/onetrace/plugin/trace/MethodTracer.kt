@@ -277,7 +277,7 @@ class MethodTracer(
             if(traceMethod != null) {
                 traceMethodCount.incrementAndGet()
                 mv.visitLdcInsn(traceMethod.mId)
-                mv.visitMethodInsn(INVOKESTATIC, TraceBuildConstants.MATRIX_TRACE_CLASS, "i", "(I)V", false)
+                mv.visitMethodInsn(INVOKESTATIC, TraceBuildConstants.APM_TRACE_CLASS, "i", "(I)V", false)
                 if(checkNeedTraceWindowFocusChangeMethod(traceMethod)) {
                     traceWindowFocusChangeMethod(mv, className)
                 }
@@ -289,14 +289,14 @@ class MethodTracer(
             if(traceMethod != null) {
                 traceMethodCount.incrementAndGet()
                 mv.visitLdcInsn(traceMethod.mId)
-                mv.visitMethodInsn(INVOKESTATIC, TraceBuildConstants.MATRIX_TRACE_CLASS, "o", "(I)V", false)
+                mv.visitMethodInsn(INVOKESTATIC, TraceBuildConstants.APM_TRACE_CLASS, "o", "(I)V", false)
             }
         }
         
         private fun checkNeedTraceWindowFocusChangeMethod(traceMethod: TraceMethod): Boolean {
             if(hasWindowFocusMethod && isActivityOrSubClass && isNeedTrace) {
                 val windowFocusChangeMethod: TraceMethod = TraceMethod.Companion.create(
-                    -1, ACC_PUBLIC, className, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS
+                    -1, ACC_PUBLIC, className, TraceBuildConstants.APM_TRACE_ON_WINDOW_FOCUS_METHOD, TraceBuildConstants.APM_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS
                 )
                 if(windowFocusChangeMethod == traceMethod) {
                     return true
@@ -327,7 +327,7 @@ class MethodTracer(
         var className = className
         className = className!!.replace(".", "/")
         val isActivity =
-            className == TraceBuildConstants.MATRIX_TRACE_ACTIVITY_CLASS || className == TraceBuildConstants.MATRIX_TRACE_V4_ACTIVITY_CLASS || className == TraceBuildConstants.MATRIX_TRACE_V7_ACTIVITY_CLASS || className == TraceBuildConstants.MATRIX_TRACE_ANDROIDX_ACTIVITY_CLASS
+            className == TraceBuildConstants.APM_TRACE_ACTIVITY_CLASS || className == TraceBuildConstants.APM_TRACE_V4_ACTIVITY_CLASS || className == TraceBuildConstants.APM_TRACE_V7_ACTIVITY_CLASS || className == TraceBuildConstants.APM_TRACE_ANDROIDX_ACTIVITY_CLASS
         return if(isActivity) {
             true
         } else {
@@ -342,7 +342,7 @@ class MethodTracer(
     private fun traceWindowFocusChangeMethod(mv: MethodVisitor, classname: String?) {
         mv.visitVarInsn(Opcodes.ALOAD, 0)
         mv.visitVarInsn(Opcodes.ILOAD, 1)
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, TraceBuildConstants.MATRIX_TRACE_CLASS, "at", "(Landroid/app/Activity;Z)V", false)
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, TraceBuildConstants.APM_TRACE_CLASS, "at", "(Landroid/app/Activity;Z)V", false)
     }
     
     /**
@@ -354,13 +354,13 @@ class MethodTracer(
      */
     private fun insertWindowFocusChangeMethod(cv: ClassVisitor, classname: String?, superClassName: String?) {
         val methodVisitor = cv.visitMethod(
-            Opcodes.ACC_PUBLIC, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS, null, null
+            Opcodes.ACC_PUBLIC, TraceBuildConstants.APM_TRACE_ON_WINDOW_FOCUS_METHOD, TraceBuildConstants.APM_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS, null, null
         )
         methodVisitor.visitCode()
         methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
         methodVisitor.visitVarInsn(Opcodes.ILOAD, 1)
         methodVisitor.visitMethodInsn(
-            Opcodes.INVOKESPECIAL, superClassName, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD, TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS, false
+            Opcodes.INVOKESPECIAL, superClassName, TraceBuildConstants.APM_TRACE_ON_WINDOW_FOCUS_METHOD, TraceBuildConstants.APM_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS, false
         )
         traceWindowFocusChangeMethod(methodVisitor, classname)
         methodVisitor.visitInsn(Opcodes.RETURN)
@@ -369,7 +369,7 @@ class MethodTracer(
     }
     
     companion object {
-        private const val TAG = "Matrix.MethodTracer"
+        private const val TAG = "Apm.MethodTracer"
         private val traceMethodCount = AtomicInteger()
     }
 }

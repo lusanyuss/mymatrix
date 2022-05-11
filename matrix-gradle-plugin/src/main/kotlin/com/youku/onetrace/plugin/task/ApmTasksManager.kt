@@ -4,37 +4,37 @@ import com.android.build.gradle.AppExtension
 import com.youku.onetrace.javalib.util.Log
 import com.youku.onetrace.javalib.util.Util
 import com.youku.onetrace.plugin.compat.CreationConfig
-import com.youku.onetrace.plugin.compat.MatrixTraceCompat
-import com.youku.onetrace.plugin.extension.MatrixRemoveUnusedResExtension
-import com.youku.onetrace.plugin.trace.extension.MatrixTraceExtension
+import com.youku.onetrace.plugin.compat.ApmTraceCompat
+import com.youku.onetrace.plugin.extension.ApmRemoveUnusedResExtension
+import com.youku.onetrace.plugin.trace.extension.ApmTraceExtension
 import org.gradle.api.Project
 
-class MatrixTasksManager {
+class ApmTasksManager {
     
     companion object {
-        const val TAG = "Matrix.TasksManager"
+        const val TAG = "Apm.TasksManager"
     }
     
-    fun createMatrixTasks(
-        android: AppExtension, project: Project, traceExtension: MatrixTraceExtension, removeUnusedResourcesExtension: MatrixRemoveUnusedResExtension
+    fun createApmTasks(
+        android: AppExtension, project: Project, traceExtension: ApmTraceExtension, removeUnusedResourcesExtension: ApmRemoveUnusedResExtension
     ) {
         
-        createMatrixTraceTask(android, project, traceExtension)
+        createApmTraceTask(android, project, traceExtension)
         
         createRemoveUnusedResourcesTask(android, project, removeUnusedResourcesExtension)
     }
     
     
     // todo yuliu:  创建跟踪任务task
-    private fun createMatrixTraceTask(
-        android: AppExtension, project: Project, traceExtension: MatrixTraceExtension
+    private fun createApmTraceTask(
+        android: AppExtension, project: Project, traceExtension: ApmTraceExtension
     ) {
-        MatrixTraceCompat().inject(android, project, traceExtension)
+        ApmTraceCompat().inject(android, project, traceExtension)
     }
     
     // todo yuliu:  创建移除无用资源task
     private fun createRemoveUnusedResourcesTask(
-        android: AppExtension, project: Project, removeUnusedResourcesExtension: MatrixRemoveUnusedResExtension
+        android: AppExtension, project: Project, removeUnusedResourcesExtension: ApmRemoveUnusedResExtension
     ) {
         
         project.afterEvaluate {

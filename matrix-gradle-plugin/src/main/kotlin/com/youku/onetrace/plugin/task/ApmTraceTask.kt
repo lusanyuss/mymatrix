@@ -6,8 +6,8 @@ import com.android.builder.model.AndroidProject.FD_OUTPUTS
 import com.google.common.base.Joiner
 import com.youku.onetrace.javalib.util.Log
 import com.youku.onetrace.plugin.compat.CreationConfig
-import com.youku.onetrace.plugin.trace.MatrixTrace
-import com.youku.onetrace.plugin.trace.extension.MatrixTraceExtension
+import com.youku.onetrace.plugin.trace.ApmTrace
+import com.youku.onetrace.plugin.trace.extension.ApmTraceExtension
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
@@ -23,9 +23,9 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutionException
 
-abstract class MatrixTraceTask : DefaultTask() {
+abstract class ApmTraceTask : DefaultTask() {
     companion object {
-        private const val TAG: String = "Matrix.TraceTask"
+        private const val TAG: String = "Apm.TraceTask"
         
         fun getTraceClassOut(project: Project, creationConfig: CreationConfig): String {
             
@@ -97,7 +97,7 @@ abstract class MatrixTraceTask : DefaultTask() {
         try {
             
             val outputDirectory = File(traceClassOutputDirectory.get())
-            MatrixTrace(
+            ApmTrace(
                 ignoreMethodMapFilePath = ignoreMethodMapFileOutput.asFile.get().absolutePath,
                 methodMapFilePath = methodMapFileOutput.asFile.get().absolutePath,
                 baseMethodMapPath = baseMethodMapFile.asFile.orNull?.absolutePath,
@@ -120,7 +120,7 @@ abstract class MatrixTraceTask : DefaultTask() {
             e.printStackTrace()
         }
         val cost = System.currentTimeMillis() - start
-        Log.i(TAG, " Insert matrix trace instrumentations cost time: %sms.", cost)
+        Log.i(TAG, " Insert apm trace instrumentations cost time: %sms.", cost)
     }
     
     fun wired(creationConfig: CreationConfig, task: DexArchiveBuilderTask) {
@@ -135,7 +135,7 @@ abstract class MatrixTraceTask : DefaultTask() {
         val traceClassOut = getTraceClassOut(project, creationConfig)
         
         val outputs = task.mixedScopeClasses.files.map {
-            File(traceClassOut, MatrixTrace.appendSuffix(it, "traced"))
+            File(traceClassOut, ApmTrace.appendSuffix(it, "traced"))
         }
         
         classOutputs.from(outputs)
@@ -145,13 +145,13 @@ abstract class MatrixTraceTask : DefaultTask() {
     }
     
     class CreationAction(
-        private val creationConfig: CreationConfig, private val extension: MatrixTraceExtension
-    ) : Action<MatrixTraceTask>, BaseCreationAction<MatrixTraceTask>(creationConfig) {
+        private val creationConfig: CreationConfig, private val extension: ApmTraceExtension
+    ) : Action<ApmTraceTask>, BaseCreationAction<ApmTraceTask>(creationConfig) {
         
-        override val name = computeTaskName("matrix", "Trace")
-        override val type = MatrixTraceTask::class.java
+        override val name = computeTaskName("apm", "Trace")
+        override val type = ApmTraceTask::class.java
         
-        override fun execute(task: MatrixTraceTask) {
+        override fun execute(task: ApmTraceTask) {
             
             val project = creationConfig.project
             val variantDirName = creationConfig.variant.dirName

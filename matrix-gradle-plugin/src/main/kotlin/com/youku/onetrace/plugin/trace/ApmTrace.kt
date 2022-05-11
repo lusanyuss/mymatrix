@@ -18,7 +18,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicInteger
 
-class MatrixTrace(
+class ApmTrace(
     private val ignoreMethodMapFilePath: String?,
     private val methodMapFilePath: String?,
     private val baseMethodMapPath: String?,
@@ -27,7 +27,7 @@ class MatrixTrace(
     private val project: Project
 ) {
     companion object {
-        private const val TAG: String = "Matrix.Trace"
+        private const val TAG: String = "Apm.Trace"
         
         @Suppress("DEPRECATION")
         fun getUniqueJarName(jarFile: File): String {

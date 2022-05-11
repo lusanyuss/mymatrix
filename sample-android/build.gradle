@@ -98,12 +98,10 @@ buildscript {
         classpath 'com.android.tools.build:gradle:4.1.0'
         classpath 'com.google.code.gson:gson:2.7'
         classpath 'com.google.gradle:osdetector-gradle-plugin:1.6.0'
-        classpath("com.tencent.matrix:matrix-gradle-plugin:${MATRIX_VERSION}") {
+        classpath("com.youku.onetrace:apm-gradle-plugin:2.0.5.1") {
             changing = true
             exclude group: 'com.android.tools.build', module: 'gradle'
         }
-
-
         // classpath
         classpath 'com.android.tools.build:gradle:4.1.0'
         classpath 'digital.wup:android-maven-publish:3.6.2'

@@ -353,7 +353,7 @@ class MethodCollector(
     companion object {
         const val TAG = "MethodCollector"
         fun isWindowFocusChangeMethod(name: String?, desc: String?): Boolean {
-            return null != name && null != desc && name == TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD && desc == TraceBuildConstants.MATRIX_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS
+            return null != name && null != desc && name == TraceBuildConstants.APM_TRACE_ON_WINDOW_FOCUS_METHOD && desc == TraceBuildConstants.APM_TRACE_ON_WINDOW_FOCUS_METHOD_ARGS
         }
         
         /**

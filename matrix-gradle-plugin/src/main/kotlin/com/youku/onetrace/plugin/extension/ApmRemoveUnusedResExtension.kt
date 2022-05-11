@@ -1,6 +1,6 @@
 package com.youku.onetrace.plugin.extension
 
-open class MatrixRemoveUnusedResExtension(
+open class ApmRemoveUnusedResExtension(
     
     var v2: Boolean = false,
     

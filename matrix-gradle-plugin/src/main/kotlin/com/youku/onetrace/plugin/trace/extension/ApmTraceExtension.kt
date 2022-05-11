@@ -1,12 +1,7 @@
 package com.youku.onetrace.plugin.trace.extension
 
-class MatrixTraceExtension {
+class ApmTraceExtension {
     var isTransformInjectionForced = false
-    
-    //    public void setEnable(boolean enable) {
-    //        this.enable = enable;
-    //        onTraceEnabled(enable);
-    //    }
     var baseMethodMapFile: String? = null
     var blackListFile: String? = null
     var customDexTransformName: String? = null

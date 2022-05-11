@@ -9,22 +9,22 @@ import com.google.common.base.Joiner
 import com.youku.onetrace.javalib.util.Log
 import com.youku.onetrace.javalib.util.ReflectUtil
 import com.youku.onetrace.javalib.util.Util
-import com.youku.onetrace.plugin.trace.MatrixTrace
+import com.youku.onetrace.plugin.trace.ApmTrace
 import com.youku.onetrace.plugin.trace.Configuration
-import com.youku.onetrace.plugin.trace.extension.MatrixTraceExtension
+import com.youku.onetrace.plugin.trace.extension.ApmTraceExtension
 import org.gradle.api.Project
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 // For Android Gradle Plugin 3.5.0
-class MatrixTraceLegacyTransform(
+class ApmTraceLegacyTransform(
     private val project: Project, private val config: Configuration, private val origTransform: Transform
 ) : Transform() {
     
     companion object {
-        const val TAG = "Matrix.TraceLegacyTransform"
+        const val TAG = "Apm.TraceLegacyTransform"
         
-        fun inject(extension: MatrixTraceExtension, project: Project, variant: BaseVariant) {
+        fun inject(extension: ApmTraceExtension, project: Project, variant: BaseVariant) {
             
             val mappingOut = Joiner.on(File.separatorChar).join(
                 project.buildDir.absolutePath, FD_OUTPUTS, "mapping", variant.dirName
@@ -45,7 +45,7 @@ class MatrixTraceLegacyTransform(
                         Log.i(TAG, "successfully inject task:" + task.name)
                         val field = TransformTask::class.java.getDeclaredField("transform")
                         field.isAccessible = true
-                        field.set(task, MatrixTraceLegacyTransform(project, config, task.transform))
+                        field.set(task, ApmTraceLegacyTransform(project, config, task.transform))
                         break
                     }
                 }
@@ -94,7 +94,7 @@ class MatrixTraceLegacyTransform(
         origTransform.transform(transformInvocation);
         val origTransformCost = System.currentTimeMillis() - begin;
         Log.i(
-            "Matrix.$name", "[transform] cost time: %dms %s:%sms MatrixTraceTransform:%sms", System.currentTimeMillis() - start, origTransform.javaClass.simpleName, origTransformCost, cost
+            "Apm.$name", "[transform] cost time: %dms %s:%sms ApmTraceTransform:%sms", System.currentTimeMillis() - start, origTransform.javaClass.simpleName, origTransformCost, cost
         );
     }
     
@@ -124,7 +124,7 @@ class MatrixTraceLegacyTransform(
         }
         
         if(inputFiles.size == 0) {
-            Log.i(TAG, "Matrix trace do not find any input files")
+            Log.i(TAG, "Apm trace do not find any input files")
             return
         }
         
@@ -138,7 +138,7 @@ class MatrixTraceLegacyTransform(
             input as Object
         }
         
-        MatrixTrace(
+        ApmTrace(
             ignoreMethodMapFilePath = config.ignoreMethodMapFilePath,
             methodMapFilePath = config.methodMapFilePath,
             baseMethodMapPath = config.baseMethodMapPath,
@@ -158,7 +158,7 @@ class MatrixTraceLegacyTransform(
         )
         
         val cost = System.currentTimeMillis() - start
-        Log.i(TAG, " Insert matrix trace instrumentations cost time: %sms.", cost)
+        Log.i(TAG, " Insert apm trace instrumentations cost time: %sms.", cost)
     }
     
     private fun replaceFile(input: QualifiedContent, newFile: File) {

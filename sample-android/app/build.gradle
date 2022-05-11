@@ -2,10 +2,10 @@ apply plugin: 'com.google.osdetector'
 
 ext.removeUnusedResourcesV2Enable = false
 
+
 import com.google.gson.Gson
 import com.google.gson.JsonArray
-
-import com.tencent.matrix.plugin.compat.AgpCompat
+import com.youku.onetrace.plugin.compat.AgpCompat
 
 apply plugin: 'com.android.application'
 
@@ -71,7 +71,7 @@ android {
     sourceSets {
         main {
             jniLibs {
-                setSrcDirs (['./libs'] as Set)
+                setSrcDirs(['./libs'] as Set)
             }
         }
     }
@@ -121,7 +121,7 @@ configurations {
 }
 
 //if (useLocalMaven()) {
-    apply from: project.file('dependencies-src.gradle')
+apply from: project.file('dependencies-src.gradle')
 //} else {
 //    apply from: project.file('dependencies-aar.gradle')
 //}
@@ -130,15 +130,16 @@ if (!removeUnusedResourcesV2Enable) {
     project.ext.unusedResourcesSet = new HashSet<String>()
 }
 
-apply plugin: 'com.tencent.matrix-plugin'
-matrix {
+apply plugin: 'com.youku.onetrace.plugin'
+
+apm {
 
     logLevel "D"
 
     trace {
         enable = true
-        baseMethodMapFile = "${project.projectDir}/matrixTrace/methodMapping.txt"
-        blackListFile = "${project.projectDir}/matrixTrace/blackMethodList.txt"
+        baseMethodMapFile = "${project.projectDir}/apmTrace/methodMapping.txt"
+        blackListFile = "${project.projectDir}/apmTrace/blackMethodList.txt"
     }
     removeUnusedResources {
         variant = "debug"

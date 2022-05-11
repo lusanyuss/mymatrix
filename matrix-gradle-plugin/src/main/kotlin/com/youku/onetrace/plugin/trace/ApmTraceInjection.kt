@@ -9,17 +9,17 @@ import com.youku.onetrace.javalib.util.Log
 import com.youku.onetrace.plugin.compat.CreationConfig
 import com.youku.onetrace.plugin.compat.CreationConfig.Companion.getCodeShrinker
 import com.youku.onetrace.plugin.task.BaseCreationAction
-import com.youku.onetrace.plugin.task.MatrixTraceTask
-import com.youku.onetrace.plugin.transform.MatrixTraceTransform
+import com.youku.onetrace.plugin.task.ApmTraceTask
+import com.youku.onetrace.plugin.transform.ApmTraceTransform
 import com.youku.onetrace.plugin.trace.extension.ITraceSwitchListener
-import com.youku.onetrace.plugin.trace.extension.MatrixTraceExtension
+import com.youku.onetrace.plugin.trace.extension.ApmTraceExtension
 import org.gradle.api.Project
 import org.gradle.api.Task
 
-class MatrixTraceInjection : ITraceSwitchListener {
+class ApmTraceInjection : ITraceSwitchListener {
     
     companion object {
-        const val TAG = "Matrix.TraceInjection"
+        const val TAG = "Apm.TraceInjection"
     }
     
     private var traceEnable = false
@@ -29,7 +29,7 @@ class MatrixTraceInjection : ITraceSwitchListener {
     }
     
     fun inject(
-        appExtension: AppExtension, project: Project, extension: MatrixTraceExtension
+        appExtension: AppExtension, project: Project, extension: ApmTraceExtension
     ) {
         injectTransparentTransform(appExtension, project, extension)
         project.afterEvaluate {
@@ -39,18 +39,18 @@ class MatrixTraceInjection : ITraceSwitchListener {
         }
     }
     
-    private var transparentTransform: MatrixTraceTransform? = null
+    private var transparentTransform: ApmTraceTransform? = null
     
     private fun injectTransparentTransform(
-        appExtension: AppExtension, project: Project, extension: MatrixTraceExtension
+        appExtension: AppExtension, project: Project, extension: ApmTraceExtension
     ) {
         
-        transparentTransform = MatrixTraceTransform(project, extension)
+        transparentTransform = ApmTraceTransform(project, extension)
         appExtension.registerTransform(transparentTransform!!)
     }
     
     private fun doInjection(
-        appExtension: AppExtension, project: Project, extension: MatrixTraceExtension
+        appExtension: AppExtension, project: Project, extension: ApmTraceExtension
     ) {
         appExtension.applicationVariants.all { variant ->
             if(injectTaskOrTransform(project, extension, variant) == InjectionMode.TransformInjection) { // Inject transform
@@ -62,7 +62,7 @@ class MatrixTraceInjection : ITraceSwitchListener {
     }
     
     private fun taskInjection(
-        project: Project, extension: MatrixTraceExtension, variant: BaseVariant
+        project: Project, extension: ApmTraceExtension, variant: BaseVariant
     ) {
         
         Log.i(TAG, "Using trace task mode.")
@@ -70,7 +70,7 @@ class MatrixTraceInjection : ITraceSwitchListener {
         project.afterEvaluate {
             
             val creationConfig = CreationConfig(variant, project)
-            val action = MatrixTraceTask.CreationAction(creationConfig, extension)
+            val action = ApmTraceTask.CreationAction(creationConfig, extension)
             val traceTaskProvider = project.tasks.register(action.name, action.type, action)
             
             val variantName = variant.name
@@ -97,7 +97,7 @@ class MatrixTraceInjection : ITraceSwitchListener {
                 }
                 
                 if(taskProvider == null) {
-                    Log.e(TAG, "Do not find '$dexBuilderTaskName' task. Inject matrix trace task failed.")
+                    Log.e(TAG, "Do not find '$dexBuilderTaskName' task. Inject apm trace task failed.")
                 }
             }
         }
@@ -115,7 +115,7 @@ class MatrixTraceInjection : ITraceSwitchListener {
     }
     
     private fun injectTaskOrTransform(
-        project: Project, extension: MatrixTraceExtension, variant: BaseVariant
+        project: Project, extension: ApmTraceExtension, variant: BaseVariant
     ): InjectionMode {
         
         if(!variant.buildType.isMinifyEnabled || extension.isTransformInjectionForced || getCodeShrinker(project) == CodeShrinker.R8) {

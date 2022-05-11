@@ -2,25 +2,25 @@ package com.youku.onetrace.plugin.compat
 
 import com.android.build.gradle.AppExtension
 import com.youku.onetrace.javalib.util.Log
-import com.youku.onetrace.plugin.trace.MatrixTraceInjection
-import com.youku.onetrace.plugin.transform.MatrixTraceLegacyTransform
+import com.youku.onetrace.plugin.trace.ApmTraceInjection
+import com.youku.onetrace.plugin.trace.extension.ApmTraceExtension
 import com.youku.onetrace.plugin.trace.extension.ITraceSwitchListener
-import com.youku.onetrace.plugin.trace.extension.MatrixTraceExtension
+import com.youku.onetrace.plugin.transform.ApmTraceLegacyTransform
 import org.gradle.api.Project
 
-class MatrixTraceCompat : ITraceSwitchListener {
+class ApmTraceCompat : ITraceSwitchListener {
     
     companion object {
-        const val TAG = "Matrix.TraceCompat"
+        const val TAG = "Apm.TraceCompat"
         
-        const val LEGACY_FLAG = "matrix_trace_legacy"
+        const val LEGACY_FLAG = "apm_trace_legacy"
     }
     
-    var traceInjection: MatrixTraceInjection? = null
+    var traceInjection: ApmTraceInjection? = null
     
     init {
         if(VersionsCompat.greatThanOrEqual(AGPVersion.AGP_4_0_0)) {
-            traceInjection = MatrixTraceInjection()
+            traceInjection = ApmTraceInjection()
         }
     }
     
@@ -28,7 +28,7 @@ class MatrixTraceCompat : ITraceSwitchListener {
         traceInjection?.onTraceEnabled(enable)
     }
     
-    fun inject(appExtension: AppExtension, project: Project, extension: MatrixTraceExtension) {
+    fun inject(appExtension: AppExtension, project: Project, extension: ApmTraceExtension) {
         when {
             VersionsCompat.lessThan(AGPVersion.AGP_3_6_0) -> legacyInject(appExtension, project, extension)
             VersionsCompat.greatThanOrEqual(AGPVersion.AGP_4_0_0) -> {
@@ -39,13 +39,13 @@ class MatrixTraceCompat : ITraceSwitchListener {
                 }
             }
             else -> Log.e(
-                TAG, "Matrix does not support Android Gradle Plugin " + "${VersionsCompat.androidGradlePluginVersion}!."
+                TAG, "Apm does not support Android Gradle Plugin " + "${VersionsCompat.androidGradlePluginVersion}!."
             )
         }
     }
     
     private fun legacyInject(
-        appExtension: AppExtension, project: Project, extension: MatrixTraceExtension
+        appExtension: AppExtension, project: Project, extension: ApmTraceExtension
     ) {
         
         project.afterEvaluate {
@@ -54,7 +54,7 @@ class MatrixTraceCompat : ITraceSwitchListener {
                 return@afterEvaluate
             } // todo yuliu:  变体工件
             appExtension.applicationVariants.all {
-                MatrixTraceLegacyTransform.inject(extension, project, it)
+                ApmTraceLegacyTransform.inject(extension, project, it)
             }
         }
     }

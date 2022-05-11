@@ -24,7 +24,7 @@ import java.util.zip.ZipOutputStream;
 
 
 public class FileUtil {
-    private static final String TAG         = "Matrix.FileUtil";
+    private static final String TAG         = "Apm.FileUtil";
     public static final  int    BUFFER_SIZE = 16384;
 
     public static final boolean isLegalFile(File file) {

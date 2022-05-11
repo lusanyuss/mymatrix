@@ -6,19 +6,19 @@ import com.android.builder.model.AndroidProject.FD_OUTPUTS
 import com.android.utils.FileUtils
 import com.google.common.base.Joiner
 import com.youku.onetrace.javalib.util.Log
-import com.youku.onetrace.plugin.trace.MatrixTrace
+import com.youku.onetrace.plugin.trace.ApmTrace
 import com.youku.onetrace.plugin.trace.Configuration
-import com.youku.onetrace.plugin.trace.extension.MatrixTraceExtension
+import com.youku.onetrace.plugin.trace.extension.ApmTraceExtension
 import org.gradle.api.Project
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
-class MatrixTraceTransform(
-    private val project: Project, private val extension: MatrixTraceExtension, private var transparent: Boolean = true
+class ApmTraceTransform(
+    private val project: Project, private val extension: ApmTraceExtension, private var transparent: Boolean = true
 ) : Transform() {
     
     companion object {
-        const val TAG = "Matrix.TraceTransform"
+        const val TAG = "Apm.TraceTransform"
     }
     
     fun enable() {
@@ -30,7 +30,7 @@ class MatrixTraceTransform(
     }
     
     override fun getName(): String {
-        return "MatrixTraceTransform"
+        return "ApmTraceTransform"
     }
     
     override fun getInputTypes(): Set<QualifiedContent.ContentType> {
@@ -191,14 +191,14 @@ class MatrixTraceTransform(
         }
         
         if(inputFiles.size == 0 || transformDirectory == null) {
-            Log.i(TAG, "Matrix trace do not find any input files")
+            Log.i(TAG, "Apm trace do not find any input files")
             return
         }
         
         // Get transform root dir.
         val outputDirectory = transformDirectory
         
-        MatrixTrace(
+        ApmTrace(
             ignoreMethodMapFilePath = config.ignoreMethodMapFilePath,
             methodMapFilePath = config.methodMapFilePath,
             baseMethodMapPath = config.baseMethodMapPath,
@@ -218,7 +218,7 @@ class MatrixTraceTransform(
         )
         
         val cost = System.currentTimeMillis() - start
-        Log.i(TAG, " Insert matrix trace instrumentations cost time: %sms.", cost)
+        Log.i(TAG, " Insert apm trace instrumentations cost time: %sms.", cost)
     }
     
 }

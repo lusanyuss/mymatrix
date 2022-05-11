@@ -13,7 +13,7 @@ import com.youku.onetrace.javalib.util.Pair
 import com.youku.onetrace.javalib.util.Util
 import com.youku.onetrace.plugin.compat.AgpCompat
 import com.youku.onetrace.plugin.compat.CreationConfig
-import com.youku.onetrace.plugin.extension.MatrixRemoveUnusedResExtension
+import com.youku.onetrace.plugin.extension.ApmRemoveUnusedResExtension
 import com.youku.onetrace.shrinker.ApkUtil
 import com.youku.onetrace.shrinker.ProguardStringBuilder
 import org.gradle.api.Action
@@ -31,7 +31,7 @@ import java.util.zip.ZipOutputStream
 abstract class RemoveUnusedResourcesTaskV2 : DefaultTask() {
     
     companion object {
-        const val TAG = "Matrix.RemoveUnusedResourcesTaskV2"
+        const val TAG = "Apm.RemoveUnusedResourcesTaskV2"
         
         const val ARSC_FILE_NAME = "resources.arsc"
         const val RES_DIR_PROGUARD_NAME = "r"
@@ -74,7 +74,7 @@ abstract class RemoveUnusedResourcesTaskV2 : DefaultTask() {
     }
     
     class CreationAction(
-        private val creationConfig: CreationConfig, private val removeUnusedResources: MatrixRemoveUnusedResExtension
+        private val creationConfig: CreationConfig, private val removeUnusedResources: ApmRemoveUnusedResExtension
     ) : Action<RemoveUnusedResourcesTaskV2>, BaseCreationAction<RemoveUnusedResourcesTaskV2>(creationConfig) {
         
         override val name = computeTaskName("remove", "UnusedResourcesV2")
@@ -408,10 +408,10 @@ abstract class RemoveUnusedResourcesTaskV2 : DefaultTask() {
         // Validate path of ApkChecker tool
         if(!Util.isNullOrNil(pathOfApkChecker)) {
             if(!File(pathOfApkChecker).exists()) {
-                throw GradleException("the path of Matrix-ApkChecker $pathOfApkChecker is not exist!")
+                throw GradleException("the path of Apm-ApkChecker $pathOfApkChecker is not exist!")
             }
         } else {
-            throw GradleException("the path of Matrix-ApkChecker not found!")
+            throw GradleException("the path of Apm-ApkChecker not found!")
         }
         
         // Validate path of Zipalign tool
