@@ -32,7 +32,7 @@ buildscript {
 
     dependencies {
         // classpath
-        classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath 'com.android.tools.build:gradle:3.4.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
     }
 }
@@ -111,8 +111,8 @@ uploadArchives {
                 )
             }
             pom.version = "2.0.5.1"
-            pom.groupId = "com.tencent.matrix"
-            pom.artifactId = "matrix-gradle-plugin"
+            pom.groupId = "com.youku.onetrace"
+            pom.artifactId = "apm-gradle-plugin"
         }
     }
 }
