@@ -1,6 +1,6 @@
 package com.youku.onetrace.plugin.trace.extension
 
-class ApmTraceExtension {
+open class ApmTraceExtension {
     var transformInjectionForced = false
     var baseMethodMapFile: String? = null
     var blackListFile: String? = null
