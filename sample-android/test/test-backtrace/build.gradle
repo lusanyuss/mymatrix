@@ -10,7 +10,7 @@ android {
         versionCode rootProject.VERSION_CODE
         versionName rootProject.VERSION_NAME
 
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+//        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         consumerProguardFiles "consumer-rules.pro"
 
         if (gradle.forceArm32() && !gradle.gonnaPublish()) {

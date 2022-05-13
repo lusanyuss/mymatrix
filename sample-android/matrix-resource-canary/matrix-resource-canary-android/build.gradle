@@ -21,7 +21,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    testImplementation 'junit:junit:4.12'
+//    testImplementation 'junit:junit:4.12'
 
     implementation project(':matrix-resource-canary:matrix-resource-canary-common')
     implementation "com.tencent.tinker:tinker-ziputils:1.9.2"
